@@ -1,7 +1,6 @@
 import logging
 
 from django.db import models
-from django.utils import timezone
 
 from core.utils import check_proxy
 

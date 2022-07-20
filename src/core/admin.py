@@ -57,7 +57,6 @@ class CredentialsAdmin(admin.ModelAdmin):
                 try:
                     network, _ = Network.objects.get_or_create(
                         title=credentials.pop("network"),
-                        defaults={"limit": 50}
                     )
                     login = credentials.pop("login")
                     credentials, created = Credentials.objects.update_or_create(
@@ -203,7 +202,6 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                     try:
                         network, _ = Network.objects.get_or_create(
                             title=credentials_proxy.pop("network"),
-                            defaults={"limit": 50}
                         )
                         login = credentials_proxy.pop("login")
                         credentials, created = Credentials.objects.update_or_create(
