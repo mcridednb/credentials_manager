@@ -17,4 +17,3 @@ RUN apt-get update && apt-get install -y git gcc python3-dev musl-dev libpq-dev
 RUN pip install pipenv && pipenv install --system
 RUN pip install -U uWSGI
 RUN python manage.py collectstatic
-RUN python manage.py migrate
