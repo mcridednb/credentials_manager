@@ -1,0 +1,6 @@
+*.pyc
+.env*
+db
+.idea
+static
+media

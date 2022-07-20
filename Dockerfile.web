@@ -1,0 +1,20 @@
+FROM python:3.10.5-slim-buster
+WORKDIR /app
+
+COPY Pipfile .
+COPY Pipfile.lock .
+COPY ./src /app
+COPY ./uwsgi.ini .
+
+RUN groupadd credentials_manager
+RUN useradd -g credentials_manager credentials_manager
+RUN chown -R credentials_manager:credentials_manager /app
+
+RUN pip install --upgrade pip
+
+RUN apt-get update && apt-get install -y git gcc python3-dev musl-dev libpq-dev
+
+RUN pip install pipenv && pipenv install --system
+RUN pip install -U uWSGI
+RUN python manage.py collectstatic
+RUN python manage.py migrate
