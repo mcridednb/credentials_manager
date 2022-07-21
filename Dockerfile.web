@@ -3,7 +3,7 @@ WORKDIR /app
 
 COPY Pipfile .
 COPY Pipfile.lock .
-COPY uwsgi.ini .
+COPY uwsgi.ini /app
 COPY ./src /app
 
 RUN groupadd credentials_manager
