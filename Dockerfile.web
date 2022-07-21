@@ -1,9 +1,10 @@
 FROM python:3.10.5-slim-buster
 WORKDIR /app
 
+RUN mkdir /config
 COPY Pipfile .
 COPY Pipfile.lock .
-COPY uwsgi.ini /app
+COPY uwsgi.ini /config
 COPY ./src /app
 
 RUN groupadd credentials_manager
