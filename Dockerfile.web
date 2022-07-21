@@ -3,8 +3,8 @@ WORKDIR /app
 
 COPY Pipfile .
 COPY Pipfile.lock .
+COPY uwsgi.ini .
 COPY ./src /app
-COPY ./uwsgi.ini .
 
 RUN groupadd credentials_manager
 RUN useradd -g credentials_manager credentials_manager
