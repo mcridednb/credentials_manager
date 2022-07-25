@@ -159,6 +159,9 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
         'cookies'
     ]
 
+    search_fields = ['credentials__login', 'proxy__ip']
+    list_filter = ('status', 'credentials__network')
+
     inlines = [CredentialsStatisticsInline]
 
     def get_urls(self):
