@@ -147,15 +147,23 @@ CELERY_TASK_ALWAYS_EAGER = False
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERYBEAT_SCHEDULE = {
-    "update_proxy_statuses": {
-        "task": "update_proxy_statuses",
-        "schedule": 60 * 15,  # run every 15 min
-    },
     "update_credentials_proxy_statuses": {
         "task": "update_credentials_proxy_statuses",
         "schedule": 60 * 15,
     },
+    "load_accounts_to_queue": {
+        "task": "load_accounts_to_queue",
+        "schedule": 60 * 5,  # run every 5 min
+    },
 }
+
+# AMQP
+AMQP_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/".format(
+    user=os.getenv("RABBIT_MQ_USERNAME", "guest"),
+    password=os.getenv("RABBIT_MQ_PASSWORD", "guest"),
+    host=os.getenv("RABBIT_MQ_HOST", "127.0.0.1"),
+    port=os.getenv("RABBIT_MQ_PORT", "5672"),
+)
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/

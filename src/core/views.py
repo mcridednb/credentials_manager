@@ -1,8 +1,9 @@
-from django.utils import timezone
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
 
+from core import amqp, tasks
 from core.models import CredentialsProxy, CredentialsStatistics
 from core.serializers import (
     CredentialsProxySerializer,
@@ -14,10 +15,8 @@ class CredentialsProxyView(generics.RetrieveAPIView):
     serializer_class = CredentialsProxySerializer
     permission_classes = [AllowAny]
 
-    def get_object(self):
-        credentials_proxy = CredentialsProxy.objects.get_random(
-            self.kwargs["network"]
-        )
+    def retrieve(self, request, *args, **kwargs):
+        credentials_proxy = amqp.consume(self.kwargs["network"])
 
         if not credentials_proxy:
             raise NotFound(
@@ -25,12 +24,10 @@ class CredentialsProxyView(generics.RetrieveAPIView):
                 code=404,
             )
 
-        credentials_proxy.status = CredentialsProxy.Status.SENT
-        credentials_proxy.time_of_sent = timezone.now()
-        credentials_proxy.counter += 1
-        credentials_proxy.save()
-
-        return credentials_proxy
+        tasks.update_account_status.delay(
+            credentials_proxy["id"], CredentialsProxy.Status.SENT
+        )
+        return Response(credentials_proxy)
 
 
 class CredentialsProxyUpdateView(generics.UpdateAPIView):

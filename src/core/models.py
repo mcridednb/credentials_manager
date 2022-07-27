@@ -120,6 +120,7 @@ class CredentialsProxyManager(models.Manager):
 class CredentialsProxy(models.Model):
     class Status(models.TextChoices):
         AVAILABLE = 'available'
+        IN_QUEUE = 'in_queue'
         SENT = 'sent'
         USED = 'used'
         NOT_AVAILABLE = 'not_available'

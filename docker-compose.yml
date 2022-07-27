@@ -18,6 +18,7 @@ services:
     depends_on:
       - db
       - redis
+      - amqp
     restart: on-failure
 
   db:
@@ -31,9 +32,10 @@ services:
       - 25432:5432
     volumes:
       - '../db/credentials_manager:/var/lib/postgresql/data'
-    restart: always
+    restart: on-failure
 
   celery:
+    container_name: credentials_manager_celery
     build:
       dockerfile: Dockerfile.celery
       context: ./
@@ -51,6 +53,21 @@ services:
 
   redis:
     image: "redis:latest"
+    container_name: credentials_manager_redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - 26379:6379
+    restart: on-failure
+
+  amqp:
+    image: rabbitmq:3.10.6-management-alpine
+    container_name: credentials_manager_amqp
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USERNAME}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWORD}
+    env_file:
+      - .env.docker
+    ports:
+      - 15672:15672
+      - 5672:5672
+    restart: on-failure

@@ -14,6 +14,7 @@ psycopg2-binary = "*"
 requests = "*"
 drf-yasg = "*"
 sentry-sdk = "*"
+kombu = "*"
 
 [dev-packages]
 

@@ -15,7 +15,7 @@ from core.models import (
     CredentialsStatistics,
     ParsingType,
 )
-from core.tasks import generate_credentials_proxy, update_proxy_statuses
+from core import tasks
 
 
 class ReadOnlyMixin:
@@ -125,7 +125,7 @@ class ProxyAdmin(admin.ModelAdmin):
         )
 
     def update_statuses(self, request):
-        update_proxy_statuses.delay()
+        tasks.update_proxy_statuses.delay()
 
         self.message_user(
             request, "Задача на обновление статусов была поставлена"
@@ -160,24 +160,23 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
     ]
 
     search_fields = ['credentials__login', 'proxy__ip']
-    list_filter = ('status', 'credentials__network')
+    list_filter = ['credentials__network', 'status']
 
     inlines = [CredentialsStatisticsInline]
 
     def get_urls(self):
         urls = super().get_urls()
         return [
-            path('generate/', self.generate),
-            # path('update-statuses/', self.update_statuses),
+            path('load-to-queue/', self.load_to_queue),
             path('import-csv/', self.import_csv),
             *urls,
         ]
 
-    def generate(self, request):
-        generate_credentials_proxy.delay()
+    def load_to_queue(self, request):
+        tasks.load_accounts_to_queue.delay()
 
         self.message_user(
-            request, "Задача на генерацию прокси-аккаунтов была поставлена"
+            request, "Задача на добавление аккаунтов в очередь была поставлена"
         )
 
         return redirect("..")

@@ -53,6 +53,10 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             if not data.get("waiting_delta"):
                 data["waiting_delta"] = 60 * 70  # 70 minutes
 
+        if data.get("status") == CredentialsProxy.Status.TEMPORARILY_BANNED:
+            if not data.get("waiting_delta"):
+                data["waiting_delta"] = 60 * 60 * 24  # 24 hours
+
         return data
 
     class Meta:
