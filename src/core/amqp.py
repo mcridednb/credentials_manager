@@ -2,7 +2,7 @@ from django.conf import settings
 from kombu import Connection, Exchange, Queue
 
 accounts_exchange = Exchange("accounts", 'direct', durable=True)
-connection = Connection(settings.AMQP_BROKER_URL)
+connection = Connection(settings.AMQP_URL)
 producer = connection.Producer(serializer='json')
 
 

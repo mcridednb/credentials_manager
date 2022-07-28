@@ -161,6 +161,12 @@ class CredentialsProxy(models.Model):
     class Meta:
         verbose_name = "прокси-аккаунт"
         verbose_name_plural = "прокси-аккаунты"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["credentials", "proxy"],
+                name="credentials_proxy_constraint",
+            )
+        ]
 
 
 class CredentialsStatistics(models.Model):

@@ -2,8 +2,8 @@ from django.db.models import F, Q
 from django.utils import timezone
 
 from conf.celery import app
-from core.models import Credentials, CredentialsProxy, Proxy
 from core import amqp
+from core.models import CredentialsProxy, Proxy
 from core.serializers import CredentialsProxySerializer
 
 

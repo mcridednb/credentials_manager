@@ -158,7 +158,7 @@ CELERYBEAT_SCHEDULE = {
 }
 
 # AMQP
-AMQP_BROKER_URL = "amqp://{user}:{password}@{host}:{port}/".format(
+AMQP_URL = "amqp://{user}:{password}@{host}:{port}/".format(
     user=os.getenv("RABBIT_MQ_USERNAME", "guest"),
     password=os.getenv("RABBIT_MQ_PASSWORD", "guest"),
     host=os.getenv("RABBIT_MQ_HOST", "127.0.0.1"),
