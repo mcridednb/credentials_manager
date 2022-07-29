@@ -4,10 +4,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from core import amqp, tasks
-from core.models import CredentialsProxy, CredentialsStatistics
+from core.models import CredentialsProxy, CredentialsStatistics, ParsingType
 from core.serializers import (
     CredentialsProxySerializer,
-    CredentialsStatisticsSerializer,
+    CredentialsStatisticsSerializer, ParsingTypeSerializer,
 )
 
 
@@ -43,3 +43,11 @@ class CredentialsStatisticsListView(generics.CreateAPIView):
     permission_classes = [AllowAny]
 
     queryset = CredentialsStatistics.objects.all()
+
+
+class LimitsView(generics.ListAPIView):
+    serializer_class = ParsingTypeSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return ParsingType.objects.filter(network__title=self.kwargs["network"])

@@ -16,15 +16,16 @@ Including another URLconf
 from django.conf import settings
 from django.contrib import admin
 from django.urls import path, re_path
+from django.views.static import serve
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 from rest_framework import permissions
-from django.views.static import serve
 
 from core.views import (
     CredentialsProxyUpdateView,
     CredentialsProxyView,
     CredentialsStatisticsListView,
+    LimitsView,
 )
 
 schema_view = get_schema_view(
@@ -37,12 +38,12 @@ schema_view = get_schema_view(
     permission_classes=[permissions.AllowAny],
 )
 
-
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/credentials/<int:pk>', CredentialsProxyUpdateView.as_view()),
     path('api/credentials/<str:network>', CredentialsProxyView.as_view()),
     path('api/statistics/', CredentialsStatisticsListView.as_view()),
+    path('api/limits/<str:network>', LimitsView.as_view()),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]
