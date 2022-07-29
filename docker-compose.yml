@@ -9,8 +9,6 @@ services:
     command: uwsgi --ini /config/uwsgi.ini
     env_file:
       - .env.docker
-    environment:
-      - REDIS_HOST=redis
     ports:
       - ${APP_PORT}:8000
     volumes:
@@ -39,11 +37,9 @@ services:
     build:
       dockerfile: Dockerfile.celery
       context: ./
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4
     env_file:
       - .env.docker
-    environment:
-      - REDIS_HOST=redis
     volumes:
       - ./src:/app
     depends_on:
