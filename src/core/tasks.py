@@ -21,12 +21,12 @@ def load_accounts_to_queue(**kwargs):
     credentials_proxies = CredentialsProxy.objects.filter(
         status=CredentialsProxy.Status.AVAILABLE
     )
-    credentials_proxies.update(status=CredentialsProxy.Status.IN_QUEUE)
     for credentials_proxy in credentials_proxies:
         amqp.publish(
             credentials_proxy.credentials.network.title,
             CredentialsProxySerializer(credentials_proxy).data
         )
+    credentials_proxies.update(status=CredentialsProxy.Status.IN_QUEUE)
 
 
 @app.task(name="update_proxy_statuses")

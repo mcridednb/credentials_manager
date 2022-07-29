@@ -58,11 +58,11 @@ services:
   amqp:
     image: rabbitmq:3.10.6-management-alpine
     container_name: credentials_manager_amqp
+    env_file:
+      - .env.docker
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBIT_MQ_USERNAME}
       - RABBITMQ_DEFAULT_PASS=${RABBIT_MQ_PASSWORD}
-    env_file:
-      - .env.docker
     ports:
       - 15672:15672
       - 5672:5672

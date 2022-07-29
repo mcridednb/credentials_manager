@@ -156,7 +156,6 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
         'status_updated',
         'waiting_delta',
         'start_time_of_use',
-        'cookies'
     ]
 
     search_fields = ['credentials__login', 'proxy__ip']
