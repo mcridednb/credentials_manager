@@ -29,7 +29,7 @@ services:
       - POSTGRES_USER=credentials_manager
       - POSTGRES_PASSWORD=credentials_manager
     ports:
-      - 25432:5432
+      - 5432:5432
     volumes:
       - '../db/credentials_manager:/var/lib/postgresql/data'
     restart: on-failure
@@ -39,7 +39,7 @@ services:
     build:
       dockerfile: Dockerfile.celery
       context: ./
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 2
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1
     env_file:
       - .env.docker
     environment:
@@ -56,7 +56,7 @@ services:
     container_name: credentials_manager_redis
     command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - 26379:6379
+      - 6379:6379
     restart: on-failure
 
   amqp:

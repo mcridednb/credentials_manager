@@ -1,9 +1,11 @@
+from django_filters import rest_framework as filters
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from core import amqp, tasks
+from core.filters import CredentialsFilter
 from core.models import CredentialsProxy, CredentialsStatistics, ParsingType
 from core.serializers import (
     CredentialsProxySerializer,
@@ -36,6 +38,14 @@ class CredentialsProxyUpdateView(generics.UpdateAPIView):
 
     queryset = CredentialsProxy.objects.all()
     lookup_field = "pk"
+
+
+class CredentialsProxyListView(generics.ListAPIView):
+    serializer_class = CredentialsProxySerializer
+    permission_classes = [AllowAny]
+
+    filter_backends = [filters.DjangoFilterBackend]
+    filterset_class = CredentialsFilter
 
 
 class CredentialsStatisticsListView(generics.CreateAPIView):

@@ -15,6 +15,7 @@ requests = "*"
 drf-yasg = "*"
 sentry-sdk = "*"
 kombu = "*"
+django-filter = "*"
 
 [dev-packages]
 
