@@ -150,6 +150,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
 
     list_editable = ('enable', 'status')
 
+    raw_id_fields = ['credentials', 'proxy']
     readonly_fields = [
         'time_of_sent',
         'status_description',
@@ -217,6 +218,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                             defaults={
                                 "status": CredentialsProxy.Status.AVAILABLE,
                                 "enable": True,
+                                "cookies": credentials_proxy.pop("cookies", None),
                             }
                         )
                     except IntegrityError:

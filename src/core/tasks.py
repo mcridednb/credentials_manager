@@ -13,6 +13,7 @@ def update_account_status(credentials_proxy_id, status):
         status=status,
         time_of_sent=timezone.now(),
         counter=F('counter') + 1,
+        start_time_of_use=timezone.now(),
     )
 
 
