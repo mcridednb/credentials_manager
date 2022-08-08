@@ -62,7 +62,7 @@ class CredentialsAdmin(admin.ModelAdmin):
                     credentials, created = Credentials.objects.update_or_create(
                         network=network, login=login, defaults=credentials
                     )
-                    if not created:
+                    if not created and hasattr(credentials, 'credentialsproxy'):
                         credentials.credentialsproxy.status = (
                             CredentialsProxy.Status.AVAILABLE
                         )
