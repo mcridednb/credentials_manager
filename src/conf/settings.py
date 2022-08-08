@@ -140,15 +140,22 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
-# Celery
+# Redis
 REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
 REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
 REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
 REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
 
-CELERY_BROKER_URL = f"{REDIS_URL}/0"
+# AMQP
+AMQP_URL = "amqp://{user}:{password}@{host}:{port}/".format(
+    user=os.getenv("RABBIT_MQ_USERNAME", "guest"),
+    password=os.getenv("RABBIT_MQ_PASSWORD", "guest"),
+    host=os.getenv("RABBIT_MQ_HOST", "127.0.0.1"),
+    port=os.getenv("RABBIT_MQ_PORT", "5672"),
+)
 
-CELERY_TASK_ALWAYS_EAGER = False
+# Celery
+CELERY_BROKER_URL = AMQP_URL
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERYBEAT_SCHEDULE = {
@@ -161,14 +168,6 @@ CELERYBEAT_SCHEDULE = {
         "schedule": 60 * 5,  # run every 5 min
     },
 }
-
-# AMQP
-AMQP_URL = "amqp://{user}:{password}@{host}:{port}/".format(
-    user=os.getenv("RABBIT_MQ_USERNAME", "guest"),
-    password=os.getenv("RABBIT_MQ_PASSWORD", "guest"),
-    host=os.getenv("RABBIT_MQ_HOST", "127.0.0.1"),
-    port=os.getenv("RABBIT_MQ_PORT", "5672"),
-)
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/
@@ -194,6 +193,7 @@ LOGGING = {
             "handlers": ["console"],
             "level": os.getenv("LOG_LEVEL", "INFO"),
             "propagate": False,
+            "formatter": "standard",
         }
     },
 }

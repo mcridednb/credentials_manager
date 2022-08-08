@@ -1,9 +1,11 @@
+from typing import Union
+
 from django.db.models import F, Q
 from django.utils import timezone
 
 from conf.celery import app
 from core import amqp
-from core.models import CredentialsProxy, Proxy
+from core.models import CredentialsProxy, Proxy, CredentialsStatistics
 from core.serializers import CredentialsProxySerializer
 
 
@@ -21,12 +23,14 @@ def update_account_status(credentials_proxy_id, status):
 def load_accounts_to_queue(**kwargs):
     credentials_proxies = CredentialsProxy.objects.filter(
         status=CredentialsProxy.Status.AVAILABLE
-    )
+    ).select_related("credentials", "credentials__network")
+
     for credentials_proxy in credentials_proxies:
         amqp.publish(
             credentials_proxy.credentials.network.title,
             CredentialsProxySerializer(credentials_proxy).data
         )
+
     credentials_proxies.update(status=CredentialsProxy.Status.IN_QUEUE)
 
 
@@ -52,3 +56,41 @@ def update_credentials_proxy_statuses(**kwargs):
         ).total_seconds() > credentials_proxy.waiting_delta:
             credentials_proxy.status = CredentialsProxy.Status.AVAILABLE
             credentials_proxy.save()
+
+
+@app.task
+def update_credentials_proxy_info(
+    credentials_proxy_id: int,
+    cookies: Union[list, dict],
+    request_count: dict,
+    limit: dict,
+    status: str,
+    description: str,
+):
+    waiting_delta = 60 * 60  # 1 hour
+
+    if status == CredentialsProxy.Status.TEMPORARILY_BANNED:
+        waiting_delta = waiting_delta * 2  # 2 hours
+
+    credentials_proxy = CredentialsProxy.objects.select_related(
+        "credentials", "credentials__network"
+    ).get(id=credentials_proxy_id)
+
+    credentials_proxy.cookies = cookies
+    credentials_proxy.status = status
+    credentials_proxy.status_description = description
+    credentials_proxy.waiting_delta = waiting_delta
+    credentials_proxy.save()
+
+    credentials = credentials_proxy.credentials
+
+    CredentialsStatistics.objects.create(
+        credentials_proxy=credentials_proxy,
+        account_title=f"{credentials.network.title}_{credentials.login}",
+        start_time_of_use=credentials_proxy.start_time_of_use,
+        end_time_of_use=timezone.now(),
+        request_count=request_count,
+        limit=limit,
+        result_status=status,
+        status_description=description,
+    )
