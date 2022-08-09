@@ -180,7 +180,14 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
         writer = csv.writer(response)
 
         writer.writerow([
-            'network', 'login', 'password', 'proxy_login', 'proxy_password', 'ip', 'port'
+            'network',
+            'login',
+            'password',
+            'proxy_login',
+            'proxy_password',
+            'ip',
+            'port',
+            'cookies',
         ])
         for obj in queryset:
             writer.writerow([
@@ -191,6 +198,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                 obj.proxy.password,
                 obj.proxy.ip,
                 obj.proxy.port,
+                obj.cookies,
             ])
 
         return response
