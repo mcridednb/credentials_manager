@@ -2,7 +2,9 @@ import csv
 import io
 
 from django.contrib import admin
+from django.core import serializers
 from django.db import IntegrityError
+from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 
@@ -164,12 +166,34 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
 
     inlines = [CredentialsStatisticsInline]
 
-    actions = ['make_available']
+    actions = ['make_available', 'export_as_csv']
 
     @admin.action(description="Поменять статус на «Available»")
     def make_available(self, request, queryset):
         updated = queryset.update(status=CredentialsProxy.Status.AVAILABLE)
         self.message_user(request, f"{updated} аккаунтов были изменены")
+
+    @admin.action(description="Выгрузить в csv")
+    def export_as_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename=credentials_proxy_{queryset.count()}.csv'
+        writer = csv.writer(response)
+
+        writer.writerow([
+            'network', 'login', 'password', 'proxy_login', 'proxy_password', 'ip', 'port'
+        ])
+        for obj in queryset:
+            writer.writerow([
+                obj.credentials.network.title,
+                obj.credentials.login,
+                obj.credentials.password,
+                obj.proxy.login,
+                obj.proxy.password,
+                obj.proxy.ip,
+                obj.proxy.port,
+            ])
+
+        return response
 
     def get_urls(self):
         urls = super().get_urls()
