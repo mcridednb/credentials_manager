@@ -164,6 +164,13 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
 
     inlines = [CredentialsStatisticsInline]
 
+    actions = ['make_available']
+
+    @admin.action(description="Поменять статус на «Available»")
+    def make_available(self, request, queryset):
+        updated = queryset.update(status=CredentialsProxy.Status.AVAILABLE)
+        self.message_user(request, f"{updated} аккаунтов были изменены")
+
     def get_urls(self):
         urls = super().get_urls()
         return [
