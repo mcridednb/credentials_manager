@@ -1,3 +1,5 @@
+import json
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -57,6 +59,17 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             if not data.get("waiting_delta"):
                 data["waiting_delta"] = 60 * 60 * 2  # 2 hours
 
+        cookies = data.get("cookies")
+        if cookies is not None and isinstance(cookies, str):
+            data['cookies'] = json.loads(cookies)
+
+        return data
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        cookies = data.get("cookies")
+        if cookies is not None and isinstance(cookies, str):
+            data['cookies'] = json.loads(cookies)
         return data
 
     class Meta:

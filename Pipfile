@@ -16,6 +16,7 @@ drf-yasg = "*"
 sentry-sdk = "*"
 kombu = "*"
 django-filter = "*"
+gunicorn = "*"
 
 [dev-packages]
 

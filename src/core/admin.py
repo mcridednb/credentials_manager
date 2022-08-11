@@ -1,5 +1,6 @@
 import csv
 import io
+import json
 
 from django.contrib import admin
 from django.core import serializers
@@ -251,13 +252,18 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                                 "enable": True,
                             }
                         )
+                        cookies = credentials_proxy.pop("cookies", None)
+
+                        if cookies is not None and isinstance(cookies, str):
+                            cookies = json.loads(cookies)
+
                         CredentialsProxy.objects.update_or_create(
                             credentials=credentials,
                             proxy=proxy,
                             defaults={
                                 "status": CredentialsProxy.Status.AVAILABLE,
                                 "enable": True,
-                                "cookies": credentials_proxy.pop("cookies", None),
+                                "cookies": cookies,
                             }
                         )
                     except IntegrityError:

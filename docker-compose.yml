@@ -6,7 +6,7 @@ services:
     build:
       dockerfile: Dockerfile.web
       context: ./
-    command: uwsgi --ini /config/uwsgi.ini
+    command: gunicorn --workers=8 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env.docker
     ports:

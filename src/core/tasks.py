@@ -1,3 +1,4 @@
+import json
 from typing import Union
 
 from django.db.models import F, Q
@@ -75,6 +76,9 @@ def update_credentials_proxy_info(
     credentials_proxy = CredentialsProxy.objects.select_related(
         "credentials", "credentials__network"
     ).get(id=credentials_proxy_id)
+
+    if cookies is not None and isinstance(cookies, str):
+        cookies = json.loads(cookies)
 
     credentials_proxy.cookies = cookies
     credentials_proxy.status = status
