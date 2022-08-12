@@ -65,13 +65,6 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
 
         return data
 
-    def to_representation(self, instance):
-        data = super().to_representation(instance)
-        cookies = data.get("cookies")
-        if cookies is not None and isinstance(cookies, str):
-            data['cookies'] = json.loads(cookies)
-        return data
-
     class Meta:
         model = CredentialsProxy
         fields = [

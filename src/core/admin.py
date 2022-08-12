@@ -160,6 +160,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
         'status_updated',
         'waiting_delta',
         'start_time_of_use',
+        'cookies',
     ]
 
     search_fields = ['credentials__login', 'proxy__ip']
@@ -199,7 +200,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                 obj.proxy.password,
                 obj.proxy.ip,
                 obj.proxy.port,
-                obj.cookies,
+                json.dumps(obj.cookies),
             ])
 
         return response
