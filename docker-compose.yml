@@ -37,7 +37,7 @@ services:
     build:
       dockerfile: Dockerfile.celery
       context: ./
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env.docker
     volumes:
