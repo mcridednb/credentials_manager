@@ -24,15 +24,45 @@ def update_account_status(credentials_proxy_id, status):
 def load_accounts_to_queue(**kwargs):
     credentials_proxies = CredentialsProxy.objects.filter(
         status=CredentialsProxy.Status.AVAILABLE
+    ).exclude(
+        credentials__network__title="ok"
     ).select_related("credentials", "credentials__network")
 
     for credentials_proxy in credentials_proxies:
         amqp.publish(
             credentials_proxy.credentials.network.title,
-            CredentialsProxySerializer(credentials_proxy).data
+            CredentialsProxySerializer(credentials_proxy).data,
         )
 
     credentials_proxies.update(status=CredentialsProxy.Status.IN_QUEUE)
+
+
+@app.task(name="load_ok_accounts_to_queue")
+def load_ok_accounts_to_queue(**kwargs):
+    proxies = CredentialsProxy.objects.filter(
+        status=CredentialsProxy.Status.AVAILABLE,
+        credentials__network__title="ok",
+    ).values_list("proxy__ip", flat=True)
+
+    for proxy_ip in set(proxies):
+        credentials_proxy = CredentialsProxy.objects.filter(
+            proxy__ip=proxy_ip
+        )
+
+        if credentials_proxy.filter(status=CredentialsProxy.Status.WAITING):
+            continue
+
+        credentials_proxy = CredentialsProxy.objects.filter(
+            status=CredentialsProxy.Status.AVAILABLE,
+            credentials__network__title="ok",
+        ).select_related("credentials", "credentials__network")
+
+        amqp.publish(
+            "ok",
+            CredentialsProxySerializer(credentials_proxy, many=True).data,
+        )
+
+        credentials_proxy.update(status=CredentialsProxy.Status.IN_QUEUE)
 
 
 @app.task(name="update_proxy_statuses")

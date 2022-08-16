@@ -26,9 +26,17 @@ class CredentialsProxyView(generics.RetrieveAPIView):
                 code=404,
             )
 
-        tasks.update_account_status.delay(
-            credentials_proxy["id"], CredentialsProxy.Status.SENT
-        )
+        if isinstance(credentials_proxy, list):
+            for credentials in credentials_proxy:
+                tasks.update_account_status.delay(
+                    credentials["id"], CredentialsProxy.Status.SENT
+                )
+            credentials_proxy = {"accounts": credentials_proxy}
+        else:
+            tasks.update_account_status.delay(
+                credentials_proxy["id"], CredentialsProxy.Status.SENT
+            )
+
         return Response(credentials_proxy)
 
 

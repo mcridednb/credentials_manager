@@ -167,6 +167,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "load_accounts_to_queue",
         "schedule": 60 * 5,  # run every 5 min
     },
+    "load_ok_accounts_to_queue": {
+        "task": "load_ok_accounts_to_queue",
+        "schedule": 60 * 10,  # run every 5 min
+    },
 }
 
 # Logging
