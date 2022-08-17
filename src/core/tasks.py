@@ -46,15 +46,9 @@ def load_ok_accounts_to_queue(**kwargs):
 
     for proxy_ip in set(proxies):
         credentials_proxy = CredentialsProxy.objects.filter(
-            proxy__ip=proxy_ip
-        )
-
-        if credentials_proxy.filter(status=CredentialsProxy.Status.WAITING):
-            continue
-
-        credentials_proxy = CredentialsProxy.objects.filter(
-            status=CredentialsProxy.Status.AVAILABLE,
+            proxy__ip=proxy_ip,
             credentials__network__title="ok",
+            status=CredentialsProxy.Status.AVAILABLE,
         ).select_related("credentials", "credentials__network")
 
         amqp.publish(
