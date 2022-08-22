@@ -65,6 +65,17 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
 
         return data
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if instance.credentials.network.dynamic_limits:
+            parsing_types = data['credentials']['network']['types']
+            for parsing_type in parsing_types:
+                dynamic_limit = (instance.counter // 10) or 1
+                if dynamic_limit <= parsing_type["limit"]:
+                    parsing_type["limit"] = dynamic_limit
+            data['credentials']['network']['types'] = parsing_types
+        return data
+
     class Meta:
         model = CredentialsProxy
         fields = [

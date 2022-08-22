@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 
 class Network(models.Model):
     title = models.CharField(max_length=255, unique=True)
+    dynamic_limits = models.BooleanField(default=False)
 
     def __str__(self):
         return self.title

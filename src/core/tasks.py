@@ -92,17 +92,20 @@ def update_credentials_proxy_info(
     status: str,
     description: str,
 ):
-    waiting_delta = 60 * 60  # 1 hour
-
-    if status == CredentialsProxy.Status.TEMPORARILY_BANNED:
-        waiting_delta = waiting_delta * 2  # 2 hours
-
     credentials_proxy = CredentialsProxy.objects.select_related(
         "credentials", "credentials__network"
     ).get(id=credentials_proxy_id)
 
     if cookies is not None and isinstance(cookies, str):
         cookies = json.loads(cookies)
+
+    waiting_delta = 60 * 60  # 1 hour
+
+    if credentials_proxy.counter < 20:
+        waiting_delta = 60 * 30  # 30 minutes
+
+    if status == CredentialsProxy.Status.TEMPORARILY_BANNED:
+        waiting_delta = waiting_delta * 2  # 2 hours
 
     credentials_proxy.cookies = cookies
     credentials_proxy.status = status
