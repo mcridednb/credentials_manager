@@ -1,38 +1,39 @@
+from typing import Union
+
 from django.conf import settings
 from kombu import Connection, Exchange, Queue
 
-accounts_exchange = Exchange("accounts", 'direct', durable=True)
-connection = Connection(settings.AMQP_URL)
-producer = connection.Producer(serializer='json')
+
+def publish(queue_name, account: Union[dict, list]):
+    with Connection(settings.AMQP_URL) as connection:
+        queue = Queue(
+            name=queue_name,
+            exchange=Exchange("accounts", "direct", durable=True),
+            routing_key=queue_name,
+        )
+        connection.Producer(serializer="json").publish(
+            body=account,
+            exchange=queue.exchange,
+            routing_key=queue.routing_key,
+            declare=[queue],
+            timeout=60,
+        )
 
 
-def _get_queue(queue_name):
-    return Queue(
-        name=queue_name,
-        exchange=accounts_exchange,
-        routing_key=queue_name,
-    )
-
-
-def _get_simple_queue(queue_name):
-    return connection.SimpleQueue(_get_queue(queue_name))
-
-
-def publish(queue_name, account: dict):
-    producer.publish(
-        body=account,
-        exchange=accounts_exchange,
-        routing_key=queue_name,
-        declare=[_get_queue(queue_name)],
-    )
-
-
-def consume(queue_name):
-    q = _get_simple_queue(queue_name)
-    try:
-        msg = q.get(block=False)
-    except q.Empty:
-        return None
-    else:
-        msg.ack()
-        return msg.payload
+def consume(queue_name, ack=True):
+    with Connection(settings.AMQP_URL) as connection:
+        q = connection.SimpleQueue(Queue(
+            name=queue_name,
+            exchange=Exchange("accounts", "direct", durable=True),
+            routing_key=queue_name,
+        ))
+        try:
+            msg = q.get(block=False)
+        except q.Empty:
+            return None
+        else:
+            if ack:
+                msg.ack()
+                return msg.payload
+            else:
+                return msg

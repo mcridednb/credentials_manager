@@ -29,12 +29,12 @@ def load_accounts_to_queue(**kwargs):
     ).select_related("credentials", "credentials__network")
 
     for credentials_proxy in credentials_proxies:
+        credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
+        credentials_proxy.save()
         amqp.publish(
             credentials_proxy.credentials.network.title,
             CredentialsProxySerializer(credentials_proxy).data,
         )
-
-    credentials_proxies.update(status=CredentialsProxy.Status.IN_QUEUE)
 
 
 @app.task(name="load_ok_accounts_to_queue")
@@ -51,12 +51,12 @@ def load_ok_accounts_to_queue(**kwargs):
             status=CredentialsProxy.Status.AVAILABLE,
         ).select_related("credentials", "credentials__network")
 
+        credentials_proxy.update(status=CredentialsProxy.Status.IN_QUEUE)
+
         amqp.publish(
             "ok",
             CredentialsProxySerializer(credentials_proxy, many=True).data,
         )
-
-        credentials_proxy.update(status=CredentialsProxy.Status.IN_QUEUE)
 
 
 @app.task(name="update_proxy_statuses")

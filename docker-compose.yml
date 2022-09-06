@@ -6,7 +6,7 @@ services:
     build:
       dockerfile: Dockerfile.web
       context: ./
-    command: gunicorn --workers=8 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
+    command: gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env.docker
     ports:
@@ -37,7 +37,7 @@ services:
     build:
       dockerfile: Dockerfile.celery
       context: ./
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4 -s /tmp/celerybeat-schedule.db
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env.docker
     volumes:
@@ -68,4 +68,15 @@ services:
     ports:
       - 15672:15672
       - 5672:5672
+    restart: on-failure
+
+
+  flower:
+    image: mher/flower
+    container_name: credentials_manager_flower
+    env_file:
+      - .env.docker
+    command: celery --broker=amqp://${RABBIT_MQ_USERNAME}:${RABBIT_MQ_PASSWORD}@amqp:5672/ flower
+    ports:
+      - 15555:5555
     restart: on-failure
