@@ -1,0 +1,10 @@
+filebeat.inputs:
+  - type: log
+    enabled: true
+    paths:
+      - /credentials-manager/credentials-manager.log
+    fields:
+      service: credentials-manager
+
+output.logstash:
+  hosts: ["elk_logstash:5044"]

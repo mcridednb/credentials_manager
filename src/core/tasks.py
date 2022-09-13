@@ -3,6 +3,7 @@ from typing import Union
 
 from django.db.models import F, Q
 from django.utils import timezone
+from loguru import logger
 
 from conf.celery import app
 from core import amqp
@@ -18,6 +19,9 @@ def update_account_status(credentials_proxy_id, status):
         counter=F('counter') + 1,
         start_time_of_use=timezone.now(),
     )
+    logger.info(
+        f"cred: {credentials_proxy_id} - CHANGED STATUS TO '{status}'"
+    )
 
 
 @app.task(name="load_accounts_to_queue")
@@ -31,9 +35,17 @@ def load_accounts_to_queue(**kwargs):
     for credentials_proxy in credentials_proxies:
         credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
         credentials_proxy.save()
+        logger.info(
+            f"cred: {credentials_proxy.id} - CHANGED STATUS TO 'IN_QUEUE'"
+        )
         amqp.publish(
             credentials_proxy.credentials.network.title,
             CredentialsProxySerializer(credentials_proxy).data,
+        )
+        logger.info(
+            f"cred: {credentials_proxy.id} "
+            f"- SEND ACCOUNT TO QUEUE "
+            f"({credentials_proxy.credentials.network.title})"
         )
 
 
@@ -53,10 +65,15 @@ def load_ok_accounts_to_queue(**kwargs):
 
         credentials_proxy.update(status=CredentialsProxy.Status.IN_QUEUE)
 
+        for account in credentials_proxy:
+            logger.info(f"cred: {account.id} - CHANGED STATUS TO 'IN_QUEUE'")
+
         amqp.publish(
             "ok",
             CredentialsProxySerializer(credentials_proxy, many=True).data,
         )
+        for account in credentials_proxy:
+            logger.info(f"cred: {account.id} - SEND ACCOUNT TO QUEUE (ok)")
 
 
 @app.task(name="update_proxy_statuses")
@@ -81,6 +98,9 @@ def update_credentials_proxy_statuses(**kwargs):
         ).total_seconds() > credentials_proxy.waiting_delta:
             credentials_proxy.status = CredentialsProxy.Status.AVAILABLE
             credentials_proxy.save()
+            logger.info(
+                f"cred: {credentials_proxy.id} - CHANGE STATUS TO 'AVAILABLE'"
+            )
 
 
 @app.task
@@ -124,4 +144,9 @@ def update_credentials_proxy_info(
         limit=limit,
         result_status=status,
         status_description=description,
+    )
+    logger.info(
+        f"cred: {credentials_proxy.id} "
+        f"- RECEIVE STATISTICS WITH STATUS '{status}' "
+        f"DESCRIPTION: {description}"
     )

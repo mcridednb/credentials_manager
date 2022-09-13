@@ -1,0 +1,80 @@
+version: '3'
+
+services:
+  web:
+    container_name: cm_web
+    build:
+      dockerfile: Dockerfile.web
+      context: ./
+    command: gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
+    env_file:
+      - .env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app
+    depends_on:
+      - db
+      - amqp
+    networks:
+      - cm_network
+    restart: always
+
+  celery:
+    container_name: cm_celery
+    build:
+      dockerfile: Dockerfile.celery
+      context: ./
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1 -s /tmp/celerybeat-schedule.db
+    env_file:
+      - .env
+    volumes:
+      - ./src:/app
+    depends_on:
+      - db
+      - amqp
+    networks:
+      - cm_network
+    restart: always
+
+  db:
+    container_name: cm_db
+    image: postgres:latest
+    env_file:
+      - .env
+    volumes:
+      - '../db/credentials_manager:/var/lib/postgresql/data'
+    networks:
+      - cm_network
+    restart: always
+
+  amqp:
+    image: rabbitmq:3.10.6-management-alpine
+    container_name: cm_amqp
+    environment:
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    env_file:
+      - .env
+    ports:
+      - 15672:15672
+    networks:
+      - cm_network
+    restart: always
+
+  filebeat:
+    image: elastic/filebeat:7.16.2
+    container_name: cm_filebeat
+    volumes:
+      - ./configs/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
+      - ./src:/credentials-manager:ro
+    networks:
+      - elk_network
+    restart: always
+
+networks:
+  cm_network:
+    name: cm_network
+    driver: bridge
+
+  elk_network:
+    external: true

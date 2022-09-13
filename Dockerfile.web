@@ -1,10 +1,11 @@
 FROM python:3.10.5-slim-buster
 WORKDIR /app
 
-RUN mkdir /config
+ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONUNBUFFERED 1
+
 COPY Pipfile .
 COPY Pipfile.lock .
-COPY uwsgi.ini /config
 COPY ./src /app
 
 RUN groupadd credentials_manager
@@ -16,4 +17,3 @@ RUN pip install --upgrade pip
 RUN apt-get update && apt-get install -y git gcc python3-dev musl-dev libpq-dev
 
 RUN pip install pipenv && pipenv install --system
-RUN pip install -U uWSGI

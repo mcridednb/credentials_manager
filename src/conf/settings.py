@@ -12,8 +12,10 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 
 import os
 from pathlib import Path
+import sys
 
 from dotenv import load_dotenv
+from loguru import logger
 import sentry_sdk
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -88,11 +90,11 @@ WSGI_APPLICATION = "conf.wsgi.application"
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST", "db"),
-        "PORT": os.getenv("DB_PORT", 5432),
+        "NAME": os.getenv("POSTGRES_DB"),
+        "USER": os.getenv("POSTGRES_USER"),
+        "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+        "HOST": os.getenv("POSTGRES_HOST", "db"),
+        "PORT": os.getenv("POSTGRES_PORT", 5432),
     }
 }
 
@@ -140,18 +142,12 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
 }
 
-# Redis
-REDIS_HOST = os.environ.get("REDIS_HOST", "redis")
-REDIS_PORT = os.environ.get("REDIS_PORT", "6379")
-REDIS_PASSWORD = os.environ.get("REDIS_PASSWORD")
-REDIS_URL = f"redis://:{REDIS_PASSWORD}@{REDIS_HOST}:{REDIS_PORT}"
-
 # AMQP
 AMQP_URL = "amqp://{user}:{password}@{host}:{port}/".format(
-    user=os.getenv("RABBIT_MQ_USERNAME", "guest"),
-    password=os.getenv("RABBIT_MQ_PASSWORD", "guest"),
-    host=os.getenv("RABBIT_MQ_HOST", "127.0.0.1"),
-    port=os.getenv("RABBIT_MQ_PORT", "5672"),
+    user=os.getenv("RABBITMQ_DEFAULT_USER", "guest"),
+    password=os.getenv("RABBITMQ_DEFAULT_PASS", "guest"),
+    host=os.getenv("RABBITMQ_HOST", "127.0.0.1"),
+    port=os.getenv("RABBITMQ_PORT", "5672"),
 )
 
 # Celery
@@ -175,32 +171,22 @@ CELERYBEAT_SCHEDULE = {
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/
-LOGGING = {
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "standard": {
-            "format": "[%(asctime)s] %(levelname)s [%(name)s:%(lineno)s] %(message)s",
-            "datefmt": "%d%b %H:%M:%S",
-        },
-        "simple": {"format": "%(levelname)s %(message)s"},
-    },
-    "handlers": {
-        "console": {"class": "logging.StreamHandler", "formatter": "standard"}
-    },
-    "root": {
-        'handlers': ['console'],
-        'level': os.getenv("LOG_LEVEL", "INFO"),
-    },
-    "loggers": {
-        "core": {
-            "handlers": ["console"],
-            "level": os.getenv("LOG_LEVEL", "INFO"),
-            "propagate": False,
-            "formatter": "standard",
-        }
-    },
-}
+logger.remove()
+log_format = (
+    "<green>{time:YYYY-MM-DD HH:mm:ss.SSS!UTC}</green> | "
+    "<level>CREDENTIALS MANAGER</level> | "
+    "<level>{level}</level> | "
+    "<cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> | "
+    "<level>{message}</level>"
+)
+logger.add(sys.stdout, format=log_format)
+logger.add(
+    "credentials-manager.log",
+    format=log_format,
+    rotation="10 MB",
+    compression="zip",
+    enqueue=True,
+)
 
 # Sentry
 if not DEBUG:

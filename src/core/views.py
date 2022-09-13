@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from loguru import logger
 from rest_framework import generics
 from rest_framework.exceptions import NotFound
 from rest_framework.permissions import AllowAny
@@ -28,11 +29,13 @@ class CredentialsProxyView(generics.RetrieveAPIView):
 
         if isinstance(credentials_proxy, list):
             for credentials in credentials_proxy:
+                logger.info(f"cred: {credentials['id']} - RECEIVE FROM QUEUE")
                 tasks.update_account_status.delay(
                     credentials["id"], CredentialsProxy.Status.SENT
                 )
             credentials_proxy = {"accounts": credentials_proxy}
         else:
+            logger.info(f"cred: {credentials_proxy['id']} - RECEIVE FROM QUEUE")
             tasks.update_account_status.delay(
                 credentials_proxy["id"], CredentialsProxy.Status.SENT
             )

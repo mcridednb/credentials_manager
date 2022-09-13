@@ -2,6 +2,7 @@ import json
 import random
 
 from django.utils import timezone
+from loguru import logger
 from rest_framework import serializers
 
 from core.models import (
@@ -63,6 +64,11 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
         cookies = data.get("cookies")
         if cookies is not None and isinstance(cookies, str):
             data['cookies'] = json.loads(cookies)
+
+        logger.info(
+            f"cred: {data['id']} - RECEIVE FROM MICROSERVICE "
+            f"WITH STATUS '{data.get('status')}'"
+        )
 
         return data
 

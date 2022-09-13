@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 django = "*"
 celery = "*"
-redis = "*"
 python-dotenv = "*"
 djangorestframework = "*"
 django-cors-headers = "*"
@@ -17,6 +16,7 @@ sentry-sdk = "*"
 kombu = "*"
 django-filter = "*"
 gunicorn = "*"
+loguru = "*"
 
 [dev-packages]
 
