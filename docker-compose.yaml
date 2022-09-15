@@ -55,8 +55,6 @@ services:
   amqp:
     image: rabbitmq:3.10.6-management-alpine
     container_name: cm_amqp
-    environment:
-      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
     env_file:
       - .env
     ports:
