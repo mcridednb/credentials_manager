@@ -9,6 +9,8 @@ services:
     command: gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env
+    environment:
+      SERVICE: "web"
     ports:
       - 8000:8000
     volumes:
@@ -28,6 +30,8 @@ services:
     command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env
+    environment:
+      SERVICE: "celery"
     volumes:
       - ./src:/app
     depends_on:
@@ -66,9 +70,11 @@ services:
     container_name: cm_filebeat
     volumes:
       - ./configs/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
-      - ./src:/credentials-manager:ro
+      - ./src/logs:/logs:ro
     networks:
       - elk_network
+    env_file:
+      - .env
     restart: always
 
 networks:

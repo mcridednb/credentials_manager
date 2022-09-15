@@ -171,6 +171,8 @@ CELERYBEAT_SCHEDULE = {
 
 # Logging
 # https://docs.djangoproject.com/en/2.1/topics/logging/
+SERVICE = os.getenv("SERVICE")
+
 logger.remove()
 log_format = (
     "<green>{time:YYYY-MM-DD HH:mm:ss.SSS!UTC}</green> | "
@@ -181,7 +183,7 @@ log_format = (
 )
 logger.add(sys.stdout, format=log_format)
 logger.add(
-    "credentials-manager.log",
+    f"logs/{SERVICE}.log",
     format=log_format,
     rotation="10 MB",
     compression="zip",

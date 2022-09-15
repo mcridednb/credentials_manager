@@ -5,3 +5,5 @@ db
 static
 media
 .DS_Store
+src/celerybeat-schedule
+*.log
