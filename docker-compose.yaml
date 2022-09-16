@@ -5,7 +5,7 @@ services:
     container_name: cm_web
     build:
       context: .
-    command: gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
+    command: python -m gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env
     environment:
