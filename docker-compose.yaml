@@ -4,8 +4,7 @@ services:
   web:
     container_name: cm_web
     build:
-      dockerfile: Dockerfile.web
-      context: ./
+      context: .
     command: gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
     env_file:
       - .env
@@ -25,8 +24,7 @@ services:
   celery:
     container_name: cm_celery
     build:
-      dockerfile: Dockerfile.celery
-      context: ./
+      context: .
     command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 1 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env
