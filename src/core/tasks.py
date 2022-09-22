@@ -63,15 +63,13 @@ def load_ok_accounts_to_queue(**kwargs):
             status=CredentialsProxy.Status.AVAILABLE,
         ).select_related("credentials", "credentials__network")
 
+        data = CredentialsProxySerializer(credentials_proxy, many=True).data
         credentials_proxy.update(status=CredentialsProxy.Status.IN_QUEUE)
 
         for account in credentials_proxy:
             logger.info(f"cred: {account.id} - CHANGED STATUS TO 'IN_QUEUE'")
 
-        amqp.publish(
-            "ok",
-            CredentialsProxySerializer(credentials_proxy, many=True).data,
-        )
+        amqp.publish("ok", data)
         for account in credentials_proxy:
             logger.info(f"cred: {account.id} - SEND ACCOUNT TO QUEUE (ok)")
 
