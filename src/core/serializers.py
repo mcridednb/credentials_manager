@@ -72,6 +72,9 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
 
         return data
 
+    def make_limits(self, types):
+        return {type_['title']: type_['limit'] for type_ in types}
+
     def to_representation(self, instance):
         data = super().to_representation(instance)
         if instance.credentials.network.dynamic_limits:
@@ -82,6 +85,10 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
                     parsing_type["limit"] = dynamic_limit
                 parsing_type["limit"] = random.randint(1, parsing_type["limit"])
             data['credentials']['network']['types'] = parsing_types
+        data['limits'] = self.make_limits(
+            data['credentials']['network']['types']
+        )
+        data['network'] = data['credentials']['network']['title']
         return data
 
     class Meta:
