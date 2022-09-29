@@ -260,8 +260,8 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
 
                         CredentialsProxy.objects.update_or_create(
                             credentials=credentials,
-                            proxy=proxy,
                             defaults={
+                                "proxy": proxy,
                                 "status": CredentialsProxy.Status.AVAILABLE,
                                 "enable": True,
                                 "cookies": cookies,
