@@ -98,6 +98,8 @@ class ProxyAdmin(admin.ModelAdmin):
     search_fields = ['ip']
     list_filter = ['status']
 
+    actions = ['export_as_csv']
+
     def get_urls(self):
         urls = super().get_urls()
         return [
