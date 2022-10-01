@@ -95,6 +95,9 @@ class ProxyAdmin(admin.ModelAdmin):
     )
     list_editable = ('enable',)
 
+    search_fields = ['ip']
+    list_filter = ['status']
+
     def get_urls(self):
         urls = super().get_urls()
         return [
@@ -102,6 +105,28 @@ class ProxyAdmin(admin.ModelAdmin):
             path('import-csv/', self.import_csv),
             *urls,
         ]
+
+    @admin.action(description="Выгрузить в csv")
+    def export_as_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename=proxy_{queryset.count()}.csv'
+        writer = csv.writer(response)
+
+        writer.writerow([
+            'proxy_login',
+            'proxy_password',
+            'ip',
+            'port',
+        ])
+        for obj in queryset:
+            writer.writerow([
+                obj.login,
+                obj.password,
+                obj.ip,
+                obj.port,
+            ])
+
+        return response
 
     def import_csv(self, request):
         if request.method == "POST":
