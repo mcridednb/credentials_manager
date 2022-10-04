@@ -8,6 +8,7 @@ from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
+from django.utils import timezone
 
 from core.forms import CsvImportForm
 from core.models import (
@@ -199,7 +200,10 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
 
     @admin.action(description="Поменять статус на «Available»")
     def make_available(self, request, queryset):
-        updated = queryset.update(status=CredentialsProxy.Status.AVAILABLE)
+        updated = queryset.update(
+            status=CredentialsProxy.Status.AVAILABLE,
+            status_updated=timezone.now(),
+        )
         self.message_user(request, f"{updated} аккаунтов были изменены")
 
     @admin.action(description="Выгрузить в csv")

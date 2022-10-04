@@ -10,8 +10,10 @@ from core.filters import CredentialsFilter
 from core.models import CredentialsProxy, CredentialsStatistics, ParsingType
 from core.serializers import (
     CredentialsProxySerializer,
-    CredentialsStatisticsSerializer, ParsingTypeSerializer,
+    CredentialsStatisticsSerializer,
+    ParsingTypeSerializer,
 )
+from core.utils import get_client_ip
 
 
 class CredentialsProxyView(generics.RetrieveAPIView):
@@ -19,6 +21,10 @@ class CredentialsProxyView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
+        logger.info(
+            f"ip: {get_client_ip(request)} - RECEIVE REQUEST FOR {self.kwargs['network'].upper()}"
+        )
+
         credentials_proxy = amqp.consume(self.kwargs["network"])
 
         if not credentials_proxy:

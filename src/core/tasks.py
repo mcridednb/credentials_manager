@@ -18,6 +18,7 @@ def update_account_status(credentials_proxy_id, status):
         time_of_sent=timezone.now(),
         counter=F('counter') + 1,
         start_time_of_use=timezone.now(),
+        status_updated=timezone.now(),
     )
     logger.info(
         f"cred: {credentials_proxy_id} - CHANGED STATUS TO '{status}'"
