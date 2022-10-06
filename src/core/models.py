@@ -54,10 +54,18 @@ class Credentials(models.Model):
 
 
 class Proxy(models.Model):
+    class Type(models.TextChoices):
+        SOCKS5 = "socks5"
+        HTTP = "http"
+
     class Status(models.TextChoices):
         AVAILABLE = "available"
         NOT_AVAILABLE = "not_available"
         IP_NOT_EQUAL = "ip_not_equal"
+
+    type = models.CharField(
+        max_length=255, choices=Type.choices, default=Type.HTTP
+    )
 
     ip = models.CharField(max_length=255, unique=True)
     port = models.CharField(max_length=255)
@@ -77,8 +85,7 @@ class Proxy(models.Model):
 
     @property
     def url(self):
-        scheme = "http"
-        return f"{scheme}://{self.login}:{self.password}@{self.ip}:{self.port}"
+        return f"{self.type}://{self.login}:{self.password}@{self.ip}:{self.port}"
 
     def update_status(self):
         try:
@@ -153,6 +160,8 @@ class CredentialsProxy(models.Model):
     cookies = models.JSONField(null=True, blank=True)
 
     counter = models.IntegerField(default=0)
+
+    token = models.CharField(max_length=255, null=True)
 
     objects = CredentialsProxyManager()
 

@@ -268,6 +268,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                             "password": credentials_proxy.pop("proxy_password"),
                             "enable": True,
                             "status": Proxy.Status.AVAILABLE,
+                            "type": credentials_proxy.get("proxy_type", Proxy.Type.HTTP)
                         }
                     )
                 except IntegrityError:
