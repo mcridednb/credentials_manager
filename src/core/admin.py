@@ -290,7 +290,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                         if cookies is not None and isinstance(cookies, str):
                             cookies = json.loads(cookies)
 
-                        credentials_proxy, _, CredentialsProxy.objects.update_or_create(
+                        credentials_proxy, _ = CredentialsProxy.objects.update_or_create(
                             credentials=credentials,
                             defaults={
                                 "proxy": proxy,
