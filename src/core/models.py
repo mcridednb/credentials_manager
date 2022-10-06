@@ -67,7 +67,7 @@ class Proxy(models.Model):
         max_length=255, choices=Type.choices, default=Type.HTTP
     )
 
-    ip = models.CharField(max_length=255, unique=True)
+    ip = models.CharField(max_length=255)
     port = models.CharField(max_length=255)
 
     login = models.CharField(max_length=255, null=True, blank=True)
