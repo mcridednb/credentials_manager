@@ -85,6 +85,8 @@ class Proxy(models.Model):
 
     @property
     def url(self):
+        if self.type == self.Type.SOCKS5:
+            self.type = self.type + "h"
         return f"{self.type}://{self.login}:{self.password}@{self.ip}:{self.port}"
 
     def update_status(self):
