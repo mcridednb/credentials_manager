@@ -66,7 +66,8 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             data['cookies'] = json.loads(cookies)
 
         logger.info(
-            f"cred: {data['id']} - RECEIVE FROM MICROSERVICE "
+            f"cred: {self.context['view'].kwargs['pk']}"
+            f" - RECEIVE FROM MICROSERVICE "
             f"WITH STATUS '{data.get('status')}'"
         )
 
