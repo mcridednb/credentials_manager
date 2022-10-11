@@ -31,9 +31,23 @@ def load_accounts_to_queue(**kwargs):
         status=CredentialsProxy.Status.AVAILABLE
     ).exclude(
         credentials__network__title="ok"
-    ).select_related("credentials", "credentials__network")
+    ).select_related(
+        "credentials",
+        "credentials__network",
+        "proxy",
+    )
 
     for credentials_proxy in credentials_proxies:
+        if CredentialsProxy.objects.filter(
+            credentials__network=credentials_proxy.credentials.network,
+            proxy=credentials_proxy.proxy
+        ).filter(
+            Q(status=CredentialsProxy.Status.SENT) |
+            Q(status=CredentialsProxy.Status.IN_QUEUE) |
+            Q(status=CredentialsProxy.Status.USED)
+        ).exists():
+            continue
+
         credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
         credentials_proxy.save()
         logger.info(
