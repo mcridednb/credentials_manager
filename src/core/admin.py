@@ -92,9 +92,13 @@ class ProxyAdmin(admin.ModelAdmin):
         '__str__',
         'status',
         'status_updated',
-        'enable'
+        'mobile',
+        'enable',
     )
-    list_editable = ('enable',)
+    list_editable = (
+        'mobile',
+        'enable',
+    )
 
     search_fields = ['ip']
     list_filter = ['status']
