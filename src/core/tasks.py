@@ -38,7 +38,7 @@ def load_accounts_to_queue(**kwargs):
     )
 
     for credentials_proxy in credentials_proxies:
-        if CredentialsProxy.objects.filter(
+        if not credentials_proxy.proxy.mobile and CredentialsProxy.objects.filter(
             credentials__network=credentials_proxy.credentials.network,
             proxy=credentials_proxy.proxy
         ).filter(

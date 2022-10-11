@@ -17,6 +17,7 @@ kombu = "*"
 django-filter = "*"
 gunicorn = "*"
 loguru = "*"
+pysocks = "*"
 
 [dev-packages]
 

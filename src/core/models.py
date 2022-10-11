@@ -78,7 +78,10 @@ class Proxy(models.Model):
     )
     status_updated = models.DateTimeField(auto_now=True)
 
+    expiration_date = models.DateTimeField(null=True, blank=True)
     enable = models.BooleanField(default=True)
+
+    mobile = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.ip}:{self.port}"
