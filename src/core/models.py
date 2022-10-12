@@ -116,6 +116,14 @@ class Proxy(models.Model):
         ]
 
 
+class ProxyCounter(models.Model):
+    network = models.ForeignKey(Network, on_delete=models.CASCADE)
+    proxy = models.ForeignKey(
+        Proxy, related_name="counters", on_delete=models.CASCADE
+    )
+    counter = models.IntegerField(default=0)
+
+
 class CredentialsProxyManager(models.Manager):
     use_in_migrations = True
 

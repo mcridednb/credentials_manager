@@ -7,19 +7,31 @@ from loguru import logger
 
 from conf.celery import app
 from core import amqp
-from core.models import CredentialsProxy, Proxy, CredentialsStatistics
+from core.models import (
+    CredentialsProxy, Proxy, CredentialsStatistics, ProxyCounter,
+)
 from core.serializers import CredentialsProxySerializer
 
 
 @app.task
 def update_account_status(credentials_proxy_id, status):
-    CredentialsProxy.objects.filter(id=credentials_proxy_id).update(
-        status=status,
-        time_of_sent=timezone.now(),
-        counter=F('counter') + 1,
-        start_time_of_use=timezone.now(),
-        status_updated=timezone.now(),
+    credentials_proxy = CredentialsProxy.objects.select_related(
+        "credentials__network"
+    ).get(
+        id=credentials_proxy_id
     )
+    credentials_proxy.status = status
+    credentials_proxy.time_of_sent = timezone.now()
+    credentials_proxy.counter += 1
+    credentials_proxy.start_time_of_use = timezone.now()
+    credentials_proxy.status_updated = timezone.now()
+    credentials_proxy.save()
+    proxy_counter = ProxyCounter.objects.get_or_create(
+        network=credentials_proxy.credentials.network,
+        proxy=credentials_proxy.proxy,
+    )
+    proxy_counter.counter += 1
+    proxy_counter.save()
     logger.info(
         f"cred: {credentials_proxy_id} - CHANGED STATUS TO '{status}'"
     )
@@ -38,15 +50,21 @@ def load_accounts_to_queue(**kwargs):
     )
 
     for credentials_proxy in credentials_proxies:
-        if not credentials_proxy.proxy.mobile and CredentialsProxy.objects.filter(
-            credentials__network=credentials_proxy.credentials.network,
-            proxy=credentials_proxy.proxy
-        ).filter(
-            Q(status=CredentialsProxy.Status.SENT) |
-            Q(status=CredentialsProxy.Status.IN_QUEUE) |
-            Q(status=CredentialsProxy.Status.USED)
-        ).exists():
-            continue
+        if not credentials_proxy.proxy.mobile:
+            credentials_proxy_count = CredentialsProxy.objects.filter(
+                credentials__network=credentials_proxy.credentials.network,
+                proxy=credentials_proxy.proxy
+            ).filter(
+                Q(status=CredentialsProxy.Status.SENT) |
+                Q(status=CredentialsProxy.Status.IN_QUEUE) |
+                Q(status=CredentialsProxy.Status.USED)
+            ).count()
+            proxy_counter = ProxyCounter.objects.get_or_create(
+                network=credentials_proxy.credentials.network,
+                proxy=credentials_proxy.proxy,
+            )
+            if credentials_proxy_count > proxy_counter.counter // 10:
+                continue
 
         credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
         credentials_proxy.save()
