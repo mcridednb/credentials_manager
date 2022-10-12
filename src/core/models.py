@@ -213,7 +213,7 @@ class CredentialsStatistics(models.Model):
     request_count = models.JSONField(null=True)
     limit = models.JSONField(null=True)
     result_status = models.CharField(max_length=255, choices=Status.choices)
-    status_description = models.CharField(max_length=1024, null=True, blank=True)
+    status_description = models.TextField(null=True, blank=True)
 
     class Meta:
         verbose_name = "статистика по аккаунтам"
