@@ -157,7 +157,7 @@ CELERY_TIMEZONE = TIME_ZONE
 CELERYBEAT_SCHEDULE = {
     "update_credentials_proxy_statuses": {
         "task": "update_credentials_proxy_statuses",
-        "schedule": 60 * 15,
+        "schedule": 60 * 5,
     },
     "load_accounts_to_queue": {
         "task": "load_accounts_to_queue",
