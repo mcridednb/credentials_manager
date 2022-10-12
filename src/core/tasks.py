@@ -26,7 +26,7 @@ def update_account_status(credentials_proxy_id, status):
     credentials_proxy.start_time_of_use = timezone.now()
     credentials_proxy.status_updated = timezone.now()
     credentials_proxy.save()
-    proxy_counter = ProxyCounter.objects.get_or_create(
+    proxy_counter, _ = ProxyCounter.objects.get_or_create(
         network=credentials_proxy.credentials.network,
         proxy=credentials_proxy.proxy,
     )
@@ -59,7 +59,7 @@ def load_accounts_to_queue(**kwargs):
                 Q(status=CredentialsProxy.Status.IN_QUEUE) |
                 Q(status=CredentialsProxy.Status.USED)
             ).count()
-            proxy_counter = ProxyCounter.objects.get_or_create(
+            proxy_counter, _ = ProxyCounter.objects.get_or_create(
                 network=credentials_proxy.credentials.network,
                 proxy=credentials_proxy.proxy,
             )
