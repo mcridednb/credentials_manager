@@ -84,7 +84,9 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
                 dynamic_limit = (instance.counter // 10) or 1
                 if dynamic_limit <= parsing_type["limit"]:
                     parsing_type["limit"] = dynamic_limit
-                parsing_type["limit"] = random.randint(1, parsing_type["limit"])
+                parsing_type["limit"] = random.randint(
+                    parsing_type["limit"]//2, parsing_type["limit"]
+                )
             data['credentials']['network']['types'] = parsing_types
         data['limits'] = self.make_limits(
             data['credentials']['network']['types']
