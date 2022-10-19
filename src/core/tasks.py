@@ -40,7 +40,8 @@ def update_account_status(credentials_proxy_id, status):
 @app.task(name="load_accounts_to_queue")
 def load_accounts_to_queue(**kwargs):
     credentials_proxies = CredentialsProxy.objects.filter(
-        status=CredentialsProxy.Status.AVAILABLE
+        status=CredentialsProxy.Status.AVAILABLE,
+        enable=True,
     ).exclude(
         credentials__network__title="ok"
     ).select_related(
@@ -87,6 +88,7 @@ def load_ok_accounts_to_queue(**kwargs):
     proxies = CredentialsProxy.objects.filter(
         status=CredentialsProxy.Status.AVAILABLE,
         credentials__network__title="ok",
+        enable=True,
     ).values_list("proxy__ip", flat=True)
 
     for proxy_ip in set(proxies):
