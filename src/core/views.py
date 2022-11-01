@@ -58,6 +58,8 @@ class CredentialsProxyUpdateView(generics.UpdateAPIView):
 
 
 class CredentialsProxyListView(generics.ListAPIView):
+    queryset = CredentialsProxy.objects.all()
+
     serializer_class = CredentialsProxySerializer
     permission_classes = [AllowAny]
 
