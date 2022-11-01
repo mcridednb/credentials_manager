@@ -26,6 +26,7 @@ from core.views import (
     CredentialsProxyView,
     CredentialsStatisticsListView,
     LimitsView,
+    CredentialsProxyListView,
 )
 
 schema_view = get_schema_view(
@@ -43,6 +44,7 @@ urlpatterns = [
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
     path('api/credentials/<int:pk>', CredentialsProxyUpdateView.as_view()),
     path('api/credentials/<str:network>', CredentialsProxyView.as_view()),
+    path('api/credentials/', CredentialsProxyListView.as_view()),
     path('api/statistics/', CredentialsStatisticsListView.as_view()),
     path('api/limits/<str:network>', LimitsView.as_view()),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
