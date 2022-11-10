@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import uuid
 
 from django.contrib import admin
 from django.core import serializers
@@ -282,10 +283,12 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                         network, _ = Network.objects.get_or_create(
                             title=credentials_proxy.pop("network"),
                         )
-                        login = credentials_proxy.pop("login")
+                        login = credentials_proxy.pop("login", None)
+                        if not login:
+                            login = credentials_proxy.get("token", str(uuid.uuid4()))
                         credentials, created = Credentials.objects.update_or_create(
                             network=network, login=login, defaults={
-                                "password": credentials_proxy.pop("password"),
+                                "password": credentials_proxy.pop("password", ""),
                                 "enable": True,
                             }
                         )
@@ -301,6 +304,7 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                                 "status": CredentialsProxy.Status.AVAILABLE,
                                 "enable": True,
                                 "cookies": cookies,
+                                "token": credentials_proxy.get("token"),
                             }
                         )
                     except IntegrityError:
