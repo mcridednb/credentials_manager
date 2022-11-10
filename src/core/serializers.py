@@ -104,6 +104,7 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             "proxy",
             "start_time_of_use",
             "cookies",
+            "token",
         ]
         read_only_fields = ["id", "credentials", "proxy"]
 

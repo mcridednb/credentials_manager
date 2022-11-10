@@ -51,21 +51,21 @@ def load_accounts_to_queue(**kwargs):
     )
 
     for credentials_proxy in credentials_proxies:
-        if not credentials_proxy.proxy.mobile:
-            credentials_proxy_count = CredentialsProxy.objects.filter(
-                credentials__network=credentials_proxy.credentials.network,
-                proxy=credentials_proxy.proxy
-            ).filter(
-                Q(status=CredentialsProxy.Status.SENT) |
-                Q(status=CredentialsProxy.Status.IN_QUEUE) |
-                Q(status=CredentialsProxy.Status.USED)
-            ).count()
-            proxy_counter, _ = ProxyCounter.objects.get_or_create(
-                network=credentials_proxy.credentials.network,
-                proxy=credentials_proxy.proxy,
-            )
-            if credentials_proxy_count > proxy_counter.counter // 10:
-                continue
+        # if not credentials_proxy.proxy.mobile:
+        #     credentials_proxy_count = CredentialsProxy.objects.filter(
+        #         credentials__network=credentials_proxy.credentials.network,
+        #         proxy=credentials_proxy.proxy
+        #     ).filter(
+        #         Q(status=CredentialsProxy.Status.SENT) |
+        #         Q(status=CredentialsProxy.Status.IN_QUEUE) |
+        #         Q(status=CredentialsProxy.Status.USED)
+        #     ).count()
+        #     proxy_counter, _ = ProxyCounter.objects.get_or_create(
+        #         network=credentials_proxy.credentials.network,
+        #         proxy=credentials_proxy.proxy,
+        #     )
+        #     if credentials_proxy_count > proxy_counter.counter // 10:
+        #         continue
 
         credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
         credentials_proxy.save()
