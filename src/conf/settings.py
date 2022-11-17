@@ -159,6 +159,10 @@ CELERYBEAT_SCHEDULE = {
         "task": "update_credentials_proxy_statuses",
         "schedule": 60 * 5,
     },
+    "update_proxy_statuses": {
+        "task": "update_proxy_statuses",
+        "schedule": 60 * 60,
+    },
     "load_accounts_to_queue": {
         "task": "load_accounts_to_queue",
         "schedule": 60 * 1,  # run every 1 min

@@ -1,3 +1,4 @@
+from django.db.models import Count
 from django_filters import rest_framework as filters
 from loguru import logger
 from rest_framework import generics
@@ -7,11 +8,14 @@ from rest_framework.response import Response
 
 from core import amqp, tasks
 from core.filters import CredentialsFilter
-from core.models import CredentialsProxy, CredentialsStatistics, ParsingType
+from core.models import (
+    CredentialsProxy, CredentialsStatistics, ParsingType, Proxy
+)
 from core.serializers import (
     CredentialsProxySerializer,
     CredentialsStatisticsSerializer,
     ParsingTypeSerializer,
+    ProxySerializer,
 )
 from core.utils import get_client_ip
 
@@ -65,6 +69,18 @@ class CredentialsProxyListView(generics.ListAPIView):
 
     filter_backends = [filters.DjangoFilterBackend]
     filterset_class = CredentialsFilter
+
+
+class ProxyListView(generics.ListAPIView):
+    serializer_class = ProxySerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        return Proxy.objects.filter(
+            enable=True, status=Proxy.Status.AVAILABLE
+        ).annotate(
+            related_accounts_count=Count("credentials_proxy")
+        ).order_by("related_accounts_count")
 
 
 class CredentialsStatisticsListView(generics.CreateAPIView):

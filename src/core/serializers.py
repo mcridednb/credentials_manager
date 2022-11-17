@@ -50,9 +50,6 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
 
-        if data.get("status") == CredentialsProxy.Status.USED:
-            data["start_time_of_use"] = timezone.now()
-
         if data.get("status") == CredentialsProxy.Status.WAITING:
             if not data.get("waiting_delta"):
                 data["waiting_delta"] = 60 * 60  # 1 hour

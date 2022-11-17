@@ -143,8 +143,8 @@ class CredentialsProxy(models.Model):
         AVAILABLE = 'available'
         IN_QUEUE = 'in_queue'
         SENT = 'sent'
-        USED = 'used'
         NOT_AVAILABLE = 'not_available'
+        PROXY_ERROR = 'proxy_error'
         LOGIN_FAILED = 'login_failed'
         TEMPORARILY_BANNED = 'temporarily_banned'
         BANNED = 'banned'
@@ -154,7 +154,7 @@ class CredentialsProxy(models.Model):
         Credentials, on_delete=models.CASCADE
     )
     proxy = models.ForeignKey(
-        Proxy, on_delete=models.DO_NOTHING
+        Proxy, on_delete=models.DO_NOTHING, related_name="credentials_proxy"
     )
 
     status = models.CharField(
