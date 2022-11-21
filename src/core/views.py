@@ -1,4 +1,4 @@
-from django.db.models import Count
+from django.db.models import Count, Q
 from django_filters import rest_framework as filters
 from loguru import logger
 from rest_framework import generics
@@ -80,7 +80,25 @@ class ProxyListView(generics.ListAPIView):
             enable=True, status=Proxy.Status.AVAILABLE
         ).annotate(
             related_accounts_count=Count("credentials_proxy")
-        ).order_by("related_accounts_count")
+        ).order_by("-related_accounts_count")
+
+
+class ProxyView(generics.RetrieveAPIView):
+    serializer_class = ProxySerializer
+    permission_classes = [AllowAny]
+
+    def retrieve(self, request, *args, **kwargs):
+        obj = Proxy.objects.filter(
+            enable=True, status=Proxy.Status.AVAILABLE
+        ).annotate(
+            related_accounts_count=Count(
+                "credentials_proxy", filter=Q(
+                    credentials_proxy__credentials__network__title=self.kwargs['network']
+                )
+            )
+        ).order_by("-related_accounts_count").first()
+
+        return Response(self.serializer_class(obj).data)
 
 
 class CredentialsStatisticsListView(generics.CreateAPIView):

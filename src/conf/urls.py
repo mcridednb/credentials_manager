@@ -28,6 +28,7 @@ from core.views import (
     LimitsView,
     CredentialsProxyListView,
     ProxyListView,
+    ProxyView,
 )
 
 schema_view = get_schema_view(
@@ -47,6 +48,7 @@ urlpatterns = [
     path('api/credentials/<str:network>', CredentialsProxyView.as_view()),
     path('api/credentials/', CredentialsProxyListView.as_view()),
     path('api/proxy/', ProxyListView.as_view()),
+    path('api/proxy/<str:network>', ProxyView.as_view()),
     path('api/statistics/', CredentialsStatisticsListView.as_view()),
     path('api/limits/<str:network>', LimitsView.as_view()),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
