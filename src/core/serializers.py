@@ -64,6 +64,13 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
         if cookies is not None and isinstance(cookies, str):
             data['cookies'] = json.loads(cookies)
 
+        proxy = data.get("proxy")
+        if proxy:
+            try:
+                data['proxy'] = Proxy.objects.get(id=proxy)
+            except Proxy.DoesNotExist:
+                pass
+
         logger.info(
             f"cred: {self.context['view'].kwargs['pk']}"
             f" - RECEIVE FROM MICROSERVICE "
@@ -105,7 +112,7 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             "cookies",
             "token",
         ]
-        read_only_fields = ["id", "credentials", "proxy"]
+        read_only_fields = ["id", "credentials"]
 
 
 class CredentialsStatisticsSerializer(serializers.ModelSerializer):
