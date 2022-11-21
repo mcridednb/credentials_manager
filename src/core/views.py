@@ -96,7 +96,7 @@ class ProxyView(generics.RetrieveAPIView):
                     credentials_proxy__credentials__network__title=self.kwargs['network']
                 )
             )
-        ).order_by("-related_accounts_count").first()
+        ).order_by("related_accounts_count").first()
 
         return Response(self.serializer_class(obj).data)
 

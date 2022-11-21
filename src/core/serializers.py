@@ -42,7 +42,7 @@ class ProxySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Proxy
-        fields = ["url", "mobile", "related_accounts_count"]
+        fields = ["url", "mobile", "enable", "status", "related_accounts_count"]
 
 
 class CredentialsProxySerializer(serializers.ModelSerializer):
