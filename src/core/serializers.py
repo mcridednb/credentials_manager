@@ -38,7 +38,9 @@ class CredentialsSerializer(serializers.ModelSerializer):
 
 
 class ProxySerializer(serializers.ModelSerializer):
-    related_accounts_count = serializers.IntegerField()
+    related_accounts_count = serializers.IntegerField(
+        required=False, default=None
+    )
 
     class Meta:
         model = Proxy
