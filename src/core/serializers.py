@@ -51,7 +51,7 @@ class ProxySerializer(serializers.ModelSerializer):
 
 class CredentialsProxySerializer(serializers.ModelSerializer):
     credentials = CredentialsSerializer()
-    proxy = ProxySerializer()
+    proxy = serializers.IntegerField()
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
@@ -102,6 +102,7 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             data['credentials']['network']['types']
         )
         data['network'] = data['credentials']['network']['title']
+        data['proxy'] = ProxySerializer(instance.proxy).data
         return data
 
     class Meta:
