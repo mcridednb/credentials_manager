@@ -68,13 +68,6 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
         if cookies is not None and isinstance(cookies, str):
             data['cookies'] = json.loads(cookies)
 
-        proxy = data.get("proxy")
-        if proxy:
-            try:
-                data['proxy'] = Proxy.objects.get(id=proxy)
-            except Proxy.DoesNotExist:
-                pass
-
         logger.info(
             f"cred: {self.context['view'].kwargs['pk']}"
             f" - RECEIVE FROM MICROSERVICE "
@@ -82,6 +75,15 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
         )
 
         return data
+
+    def update(self, instance, validated_data):
+        proxy = validated_data.get("proxy")
+        if proxy:
+            try:
+                validated_data['proxy'] = Proxy.objects.get(id=proxy)
+            except Proxy.DoesNotExist:
+                pass
+        return super().update(instance, validated_data)
 
     def make_limits(self, types):
         return {type_['title']: type_['limit'] for type_ in types}
