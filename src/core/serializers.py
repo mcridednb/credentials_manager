@@ -26,7 +26,7 @@ class NetworkSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Network
-        fields = ["title", "types"]
+        fields = ["title", "dynamic_limits", "types"]
 
 
 class CredentialsSerializer(serializers.ModelSerializer):
@@ -34,7 +34,7 @@ class CredentialsSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Credentials
-        fields = ["network", "login", "password"]
+        fields = ["id", "network", "login", "password"]
 
 
 class ProxySerializer(serializers.ModelSerializer):
@@ -127,6 +127,7 @@ class CredentialsStatisticsSerializer(serializers.ModelSerializer):
 
         credentials_proxy = data['credentials_proxy']
 
+        data["account_title"] = str(credentials_proxy.credentials)
         data["start_time_of_use"] = credentials_proxy.start_time_of_use
         data["end_time_of_use"] = timezone.now()
 
