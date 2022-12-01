@@ -124,20 +124,6 @@ class ProxyCounter(models.Model):
     counter = models.IntegerField(default=0)
 
 
-class CredentialsProxyManager(models.Manager):
-    use_in_migrations = True
-
-    def get_random(self, network):
-        return self.filter(
-            credentials__enable=True,
-            credentials__network__title=network,
-            proxy__enable=True,
-            proxy__status=Proxy.Status.AVAILABLE,
-            enable=True,
-            status=self.model.Status.AVAILABLE,
-        ).order_by("counter").first()
-
-
 class CredentialsProxy(models.Model):
     class Status(models.TextChoices):
         AVAILABLE = 'available'
@@ -175,8 +161,6 @@ class CredentialsProxy(models.Model):
     counter = models.IntegerField(default=0)
 
     token = models.CharField(max_length=255, null=True)
-
-    objects = CredentialsProxyManager()
 
     def __str__(self):
         return str(self.credentials)
