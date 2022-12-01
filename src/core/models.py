@@ -123,6 +123,15 @@ class ProxyCounter(models.Model):
     )
     counter = models.IntegerField(default=0)
 
+    class Meta:
+        verbose_name = "счетчик прокси"
+        verbose_name_plural = "счетчик прокси"
+        constraints = [
+            models.UniqueConstraint(
+                fields=["network", "proxy"], name="network_proxy_constraint"
+            )
+        ]
+
 
 class CredentialsProxy(models.Model):
     class Status(models.TextChoices):
