@@ -161,7 +161,7 @@ CELERYBEAT_SCHEDULE = {
     },
     "update_proxy_statuses": {
         "task": "update_proxy_statuses",
-        "schedule": 60 * 60,
+        "schedule": 60 * 60 * 3,
     },
     "load_accounts_to_queue": {
         "task": "load_accounts_to_queue",

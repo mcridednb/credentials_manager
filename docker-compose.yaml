@@ -25,7 +25,7 @@ services:
     container_name: cm_celery
     build:
       context: .
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 2 -s /tmp/celerybeat-schedule.db
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env
     environment:
