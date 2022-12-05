@@ -138,7 +138,6 @@ class CredentialsStatisticsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "credentials_proxy",
-            "account_title",
             "start_time_of_use",
             "end_time_of_use",
             "request_count",

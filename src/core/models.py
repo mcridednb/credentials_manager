@@ -200,7 +200,7 @@ class CredentialsStatistics(models.Model):
         blank=True,
         related_name="statistics"
     )
-    account_title = models.CharField(max_length=255)
+    account_title = models.CharField(max_length=255, null=True)
     start_time_of_use = models.DateTimeField()
     end_time_of_use = models.DateTimeField()
     request_count = models.JSONField(null=True)
