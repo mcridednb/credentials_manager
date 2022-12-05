@@ -9,7 +9,7 @@ def check_proxy(proxy_url):
     response = requests.get("https://api.ipify.org/", proxies={
         "http": proxy_url,
         "https": proxy_url,
-    })
+    }, timeout=5)
     response.raise_for_status()
     return response.text
 
