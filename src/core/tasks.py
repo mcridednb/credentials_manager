@@ -62,10 +62,16 @@ def load_accounts_to_queue(**kwargs):
                 Q(status=CredentialsProxy.Status.SENT) |
                 Q(status=CredentialsProxy.Status.IN_QUEUE)
             ).count()
-            proxy_counter, _ = ProxyCounter.objects.get_or_create(
-                network=credentials_proxy.credentials.network,
-                proxy=credentials_proxy.proxy,
-            )
+            try:
+                proxy_counter, _ = ProxyCounter.objects.get_or_create(
+                    network=credentials_proxy.credentials.network,
+                    proxy=credentials_proxy.proxy,
+                )
+            except Exception:
+                proxy_counter, _ = ProxyCounter.objects.get(
+                    network=credentials_proxy.credentials.network,
+                    proxy=credentials_proxy.proxy,
+                )
             if credentials_proxy_count > proxy_counter.counter // 10:
                 continue
 
@@ -136,52 +142,3 @@ def update_credentials_proxy_statuses(**kwargs):
             logger.info(
                 f"cred: {credentials_proxy.id} - CHANGE STATUS TO 'AVAILABLE'"
             )
-
-
-@app.task
-def update_credentials_proxy_info(
-    credentials_proxy_id: int,
-    cookies: Union[list, dict],
-    request_count: dict,
-    limit: dict,
-    status: str,
-    description: str,
-):
-    credentials_proxy = CredentialsProxy.objects.select_related(
-        "credentials", "credentials__network"
-    ).get(id=credentials_proxy_id)
-
-    if cookies is not None and isinstance(cookies, str):
-        cookies = json.loads(cookies)
-
-    waiting_delta = 60 * 60  # 1 hour
-
-    if credentials_proxy.counter < 20:
-        waiting_delta = 60 * 30  # 30 minutes
-
-    if status == CredentialsProxy.Status.TEMPORARILY_BANNED:
-        waiting_delta = waiting_delta * 2  # 2 hours
-
-    credentials_proxy.cookies = cookies
-    credentials_proxy.status = status
-    credentials_proxy.status_description = description
-    credentials_proxy.waiting_delta = waiting_delta
-    credentials_proxy.save()
-
-    credentials = credentials_proxy.credentials
-
-    CredentialsStatistics.objects.create(
-        credentials_proxy=credentials_proxy,
-        account_title=f"{credentials.network.title}_{credentials.login}",
-        start_time_of_use=credentials_proxy.start_time_of_use,
-        end_time_of_use=timezone.now(),
-        request_count=request_count,
-        limit=limit,
-        result_status=status,
-        status_description=description,
-    )
-    logger.info(
-        f"cred: {credentials_proxy.id} "
-        f"- RECEIVE STATISTICS WITH STATUS '{status}' "
-        f"DESCRIPTION: {description}"
-    )
