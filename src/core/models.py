@@ -97,6 +97,7 @@ class Proxy(models.Model):
             result_ip = check_proxy(self.url)
         except Exception as e:
             self.status = self.Status.NOT_AVAILABLE
+            self.enable = False
             logger.warning(f"Something went wrong with ip: {self.ip}: {e}")
         else:
             if self.ip == result_ip:
