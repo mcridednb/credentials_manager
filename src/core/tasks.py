@@ -51,29 +51,29 @@ def load_accounts_to_queue(**kwargs):
     )
 
     for credentials_proxy in credentials_proxies:
-        if (
-            credentials_proxy.credentials.network.title == "facebook"
-            and (not credentials_proxy.proxy.mobile)
-        ):
-            credentials_proxy_count = CredentialsProxy.objects.filter(
-                credentials__network=credentials_proxy.credentials.network,
-                proxy=credentials_proxy.proxy
-            ).filter(
-                Q(status=CredentialsProxy.Status.SENT) |
-                Q(status=CredentialsProxy.Status.IN_QUEUE)
-            ).count()
-            try:
-                proxy_counter, _ = ProxyCounter.objects.get_or_create(
-                    network=credentials_proxy.credentials.network,
-                    proxy=credentials_proxy.proxy,
-                )
-            except Exception:
-                proxy_counter, _ = ProxyCounter.objects.get(
-                    network=credentials_proxy.credentials.network,
-                    proxy=credentials_proxy.proxy,
-                )
-            if credentials_proxy_count > proxy_counter.counter // 10:
-                continue
+        # if (
+        #     credentials_proxy.credentials.network.title == "facebook"
+        #     and (not credentials_proxy.proxy.mobile)
+        # ):
+        #     credentials_proxy_count = CredentialsProxy.objects.filter(
+        #         credentials__network=credentials_proxy.credentials.network,
+        #         proxy=credentials_proxy.proxy
+        #     ).filter(
+        #         Q(status=CredentialsProxy.Status.SENT) |
+        #         Q(status=CredentialsProxy.Status.IN_QUEUE)
+        #     ).count()
+        #     try:
+        #         proxy_counter, _ = ProxyCounter.objects.get_or_create(
+        #             network=credentials_proxy.credentials.network,
+        #             proxy=credentials_proxy.proxy,
+        #         )
+        #     except Exception:
+        #         proxy_counter, _ = ProxyCounter.objects.get(
+        #             network=credentials_proxy.credentials.network,
+        #             proxy=credentials_proxy.proxy,
+        #         )
+        #     if credentials_proxy_count > proxy_counter.counter // 10:
+        #         continue
 
         credentials_proxy.status = CredentialsProxy.Status.IN_QUEUE
         credentials_proxy.save()
