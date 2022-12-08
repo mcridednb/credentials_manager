@@ -240,6 +240,14 @@ class CredentialsStatistics(models.Model):
     result_status = models.CharField(max_length=255, choices=Status.choices)
     status_description = models.TextField(null=True, blank=True)
 
+    proxy = models.ForeignKey(
+        Proxy,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="statistics"
+    )
+
     class Meta:
         verbose_name = "статистика по аккаунтам"
         verbose_name_plural = "статистика по аккаунтам"

@@ -44,12 +44,36 @@ class CredentialsAdmin(admin.ModelAdmin):
     list_display = ('__str__', 'enable')
     list_editable = ('enable',)
 
+    actions = ['export_as_csv']
+
     def get_urls(self):
         urls = super().get_urls()
         return [
             path('import-csv/', self.import_csv),
             *urls,
         ]
+
+    @admin.action(description="Выгрузить в csv")
+    def export_as_csv(self, request, queryset):
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename=credentials_{queryset.count()}.csv'
+        writer = csv.writer(response)
+
+        writer.writerow([
+            'network',
+            'login',
+            'password',
+            'price',
+        ])
+        for obj in queryset:
+            writer.writerow([
+                obj.network.title,
+                obj.login,
+                obj.password,
+                obj.price,
+            ])
+
+        return response
 
     def import_csv(self, request):
         if request.method == "POST":
@@ -356,6 +380,7 @@ class CredentialsStatisticsAdmin(ReadOnlyMixin, admin.ModelAdmin):
         'request_count',
         'limit',
         'result_status',
+        'proxy',
     )
 
 

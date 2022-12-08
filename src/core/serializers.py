@@ -130,6 +130,7 @@ class CredentialsStatisticsSerializer(serializers.ModelSerializer):
         data["account_title"] = str(credentials_proxy.credentials)
         data["start_time_of_use"] = credentials_proxy.start_time_of_use
         data["end_time_of_use"] = timezone.now()
+        data["proxy"] = credentials_proxy.proxy
 
         return data
 
@@ -144,6 +145,7 @@ class CredentialsStatisticsSerializer(serializers.ModelSerializer):
             "limit",
             "result_status",
             "status_description",
+            "proxy",
         ]
         read_only_fields = ["id"]
         extra_kwargs = {
