@@ -1,6 +1,9 @@
+from datetime import datetime, timedelta
 import logging
+import os
 
 from django.db import models
+import requests
 
 from core.utils import check_proxy
 
@@ -37,6 +40,8 @@ class Credentials(models.Model):
 
     login = models.CharField(max_length=255)
     password = models.CharField(max_length=255)
+
+    price = models.IntegerField(null=True, blank=True)
 
     enable = models.BooleanField(default=True)
 
@@ -78,10 +83,15 @@ class Proxy(models.Model):
     )
     status_updated = models.DateTimeField(auto_now=True)
 
-    expiration_date = models.DateTimeField(null=True, blank=True)
+    expiration_date = models.DateField(null=True, blank=True)
     enable = models.BooleanField(default=True)
 
     mobile = models.BooleanField(default=False)
+
+    price = models.IntegerField(null=True, blank=True)
+
+    tomorrow_notification = models.BooleanField(default=False)
+    today_notification = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.ip}:{self.port}"
@@ -91,6 +101,26 @@ class Proxy(models.Model):
         if self.type == self.Type.SOCKS5:
             self.type = self.type + "h"
         return f"{self.type}://{self.login}:{self.password}@{self.ip}:{self.port}"
+
+    @staticmethod
+    def send_telegram_notification(msg):
+        api_token = os.getenv("TELEGRAM_API_TOKEN")
+        chat_id = os.getenv("TELEGRAM_CHAT_ID")
+        requests.post(
+            f'https://api.telegram.org/bot{api_token}/sendMessage',
+            json={'chat_id': chat_id, 'text': msg}
+        )
+
+    def check_date(self):
+        if self.expiration_date == (datetime.today() + timedelta(days=1)).date():
+            if not self.tomorrow_notification:
+                self.send_telegram_notification(f"Завтра заканчиваются прокси {self.ip}")
+                self.tomorrow_notification = True
+
+        if self.expiration_date == datetime.today().date():
+            if not self.today_notification:
+                self.send_telegram_notification(f"Сегодня заканчиваются прокси {self.ip}")
+                self.today_notification = True
 
     def update_status(self):
         try:
@@ -104,6 +134,7 @@ class Proxy(models.Model):
                 self.status = self.Status.AVAILABLE
             else:
                 self.status = self.Status.IP_NOT_EQUAL
+            self.check_date()
         finally:
             self.save()
 

@@ -1,26 +1,25 @@
 import csv
+from datetime import datetime
 import io
 import json
 import uuid
 
 from django.contrib import admin
-from django.core import serializers
 from django.db import IntegrityError
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
 from django.utils import timezone
 
-from core.forms import CsvImportForm
-from core.models import (
-    Credentials,
-    CredentialsProxy,
-    Network,
-    Proxy,
-    CredentialsStatistics,
-    ParsingType,
-)
 from core import tasks
+from core.forms import CsvImportForm
+from core.models import (Credentials, CredentialsProxy, CredentialsStatistics, Network, ParsingType, Proxy)
+
+
+def get_date(date):
+    if not date:
+        return
+    return datetime.strptime(date, "%d.%m.%Y")
 
 
 class ReadOnlyMixin:
@@ -125,13 +124,23 @@ class ProxyAdmin(admin.ModelAdmin):
             'proxy_password',
             'ip',
             'port',
+            'type',
+            'expiration_date',
+            'price',
         ])
         for obj in queryset:
+            date = None
+            if obj.expiration_date:
+                date = obj.expiration_date.strftime("%d.%m.%Y")
+
             writer.writerow([
                 obj.login,
                 obj.password,
                 obj.ip,
                 obj.port,
+                obj.type,
+                date,
+                obj.price,
             ])
 
         return response
@@ -145,8 +154,12 @@ class ProxyAdmin(admin.ModelAdmin):
             for proxy in reader:
                 try:
                     ip, port = proxy.pop("ip"), proxy.pop("port")
+                    date = get_date(proxy.pop("expiration_date", None))
                     Proxy.objects.update_or_create(
-                        ip=ip, port=port, defaults=proxy
+                        ip=ip, port=port, defaults={
+                            **proxy,
+                            "expiration_date": date
+                        }
                     )
                 except IntegrityError:
                     pass
@@ -221,21 +234,33 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
             'network',
             'login',
             'password',
+            'price',
             'proxy_login',
             'proxy_password',
             'ip',
             'port',
+            'proxy_type',
+            'proxy_expiration_date',
+            'proxy_price',
             'cookies',
         ])
         for obj in queryset:
+            date = None
+            if obj.proxy.expiration_date:
+                date = obj.proxy.expiration_date.strftime("%d.%m.%Y")
+
             writer.writerow([
                 obj.credentials.network.title,
                 obj.credentials.login,
                 obj.credentials.password,
+                obj.credentials.price,
                 obj.proxy.login,
                 obj.proxy.password,
                 obj.proxy.ip,
                 obj.proxy.port,
+                obj.proxy.type,
+                date,
+                obj.proxy.price,
                 json.dumps(obj.cookies),
             ])
 
@@ -273,7 +298,9 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                             "password": credentials_proxy.pop("proxy_password"),
                             "enable": True,
                             "status": Proxy.Status.AVAILABLE,
-                            "type": credentials_proxy.get("proxy_type", Proxy.Type.HTTP)
+                            "type": credentials_proxy.get("proxy_type", Proxy.Type.HTTP),
+                            "expiration_date": get_date(credentials_proxy.get("proxy_expiration_date")),
+                            "price": credentials_proxy.get("proxy_price"),
                         }
                     )
                 except IntegrityError:
