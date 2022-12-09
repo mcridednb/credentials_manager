@@ -87,9 +87,6 @@ class Proxy(models.Model):
 
     mobile = models.BooleanField(default=False)
 
-    tomorrow_notification = models.BooleanField(default=False)
-    today_notification = models.BooleanField(default=False)
-
     def __str__(self):
         return f"{self.ip}:{self.port}"
 
@@ -109,15 +106,19 @@ class Proxy(models.Model):
         )
 
     def check_date(self):
-        if self.expiration_date == (datetime.today() + timedelta(days=1)).date():
-            if not self.tomorrow_notification:
-                self.send_telegram_notification(f"Завтра заканчиваются прокси {self.ip}")
-                self.tomorrow_notification = True
+        last_rent = self.rents.last()
+        if not last_rent:
+            return
 
-        if self.expiration_date == datetime.today().date():
-            if not self.today_notification:
+        if last_rent.expiration_date == (datetime.today() + timedelta(days=1)).date():
+            if not last_rent.tomorrow_notification:
+                self.send_telegram_notification(f"Завтра заканчиваются прокси {self.ip}")
+                last_rent.tomorrow_notification = True
+
+        if last_rent.expiration_date == datetime.today().date():
+            if not last_rent.today_notification:
                 self.send_telegram_notification(f"Сегодня заканчиваются прокси {self.ip}")
-                self.today_notification = True
+                last_rent.today_notification = True
 
     def update_status(self):
         try:
@@ -151,6 +152,9 @@ class ProxyRent(models.Model):
     )
     expiration_date = models.DateField(null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
+
+    tomorrow_notification = models.BooleanField(default=False)
+    today_notification = models.BooleanField(default=False)
 
     class Meta:
         verbose_name = "аренда прокси"
