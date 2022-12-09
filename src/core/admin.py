@@ -13,7 +13,7 @@ from django.utils import timezone
 
 from core import tasks
 from core.forms import CsvImportForm
-from core.models import (Credentials, CredentialsProxy, CredentialsStatistics, Network, ParsingType, Proxy)
+from core.models import (Credentials, CredentialsProxy, CredentialsStatistics, Network, ParsingType, Proxy, ProxyRent)
 
 
 def get_date(date):
@@ -35,6 +35,10 @@ class ReadOnlyMixin:
 
 class CredentialsStatisticsInline(ReadOnlyMixin, admin.TabularInline):
     model = CredentialsStatistics
+
+
+class ProxyRentInline(ReadOnlyMixin, admin.TabularInline):
+    model = ProxyRent
 
 
 @admin.register(Credentials)
@@ -129,6 +133,8 @@ class ProxyAdmin(admin.ModelAdmin):
 
     actions = ['export_as_csv']
 
+    inlines = [ProxyRentInline]
+
     def get_urls(self):
         urls = super().get_urls()
         return [
@@ -149,6 +155,7 @@ class ProxyAdmin(admin.ModelAdmin):
             'ip',
             'port',
             'type',
+            'mobile',
             'expiration_date',
             'price',
         ])
@@ -163,6 +170,7 @@ class ProxyAdmin(admin.ModelAdmin):
                 obj.ip,
                 obj.port,
                 obj.type,
+                str(obj.mobile).lower(),
                 date,
                 obj.price,
             ])
@@ -179,10 +187,18 @@ class ProxyAdmin(admin.ModelAdmin):
                 try:
                     ip, port = proxy.pop("ip"), proxy.pop("port")
                     date = get_date(proxy.pop("expiration_date", None))
-                    Proxy.objects.update_or_create(
+                    proxy_obj, created = Proxy.objects.update_or_create(
                         ip=ip, port=port, defaults={
-                            **proxy,
-                            "expiration_date": date
+                            "login": proxy.get("login"),
+                            "password": proxy.get("password"),
+                            "mobile": proxy.get("mobile").lower() == "true",
+                        }
+                    )
+                    ProxyRent.objects.get_or_create(
+                        proxy=proxy_obj,
+                        expiration_date=date,
+                        defaults={
+                            "price": proxy.get("price")
                         }
                     )
                 except IntegrityError:

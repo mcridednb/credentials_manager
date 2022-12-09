@@ -83,12 +83,9 @@ class Proxy(models.Model):
     )
     status_updated = models.DateTimeField(auto_now=True)
 
-    expiration_date = models.DateField(null=True, blank=True)
     enable = models.BooleanField(default=True)
 
     mobile = models.BooleanField(default=False)
-
-    price = models.IntegerField(null=True, blank=True)
 
     tomorrow_notification = models.BooleanField(default=False)
     today_notification = models.BooleanField(default=False)
@@ -146,6 +143,18 @@ class Proxy(models.Model):
                 fields=["ip", "port"], name="ip_port_constraint"
             )
         ]
+
+
+class ProxyRent(models.Model):
+    proxy = models.ForeignKey(
+        Proxy, related_name="rents", on_delete=models.CASCADE
+    )
+    expiration_date = models.DateField(null=True, blank=True)
+    price = models.IntegerField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = "аренда прокси"
+        verbose_name_plural = "аренда прокси"
 
 
 class ProxyCounter(models.Model):
