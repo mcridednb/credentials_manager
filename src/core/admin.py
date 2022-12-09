@@ -150,8 +150,8 @@ class ProxyAdmin(admin.ModelAdmin):
         writer = csv.writer(response)
 
         writer.writerow([
-            'proxy_login',
-            'proxy_password',
+            'login',
+            'password',
             'ip',
             'port',
             'type',
