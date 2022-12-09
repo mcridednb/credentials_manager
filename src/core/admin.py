@@ -160,9 +160,12 @@ class ProxyAdmin(admin.ModelAdmin):
             'price',
         ])
         for obj in queryset:
+            last_rent = obj.rents.last()
             date = None
-            if obj.expiration_date:
-                date = obj.expiration_date.strftime("%d.%m.%Y")
+            price = None
+            if last_rent:
+                date = last_rent.expiration_date.strftime("%d.%m.%Y")
+                price = last_rent.price
 
             writer.writerow([
                 obj.login,
@@ -172,7 +175,7 @@ class ProxyAdmin(admin.ModelAdmin):
                 obj.type,
                 str(obj.mobile).lower(),
                 date,
-                obj.price,
+                price,
             ])
 
         return response
