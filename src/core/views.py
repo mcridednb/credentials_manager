@@ -79,7 +79,7 @@ class ProxyListView(generics.ListAPIView):
         return Proxy.objects.filter(
             enable=True, status=Proxy.Status.AVAILABLE
         ).annotate(
-            related_accounts_count=Count("credentials_proxy")
+            related_accounts_count=Count("accounts")
         ).order_by("related_accounts_count")
 
 

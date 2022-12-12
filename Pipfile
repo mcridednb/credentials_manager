@@ -18,6 +18,7 @@ django-filter = "*"
 gunicorn = "*"
 loguru = "*"
 pysocks = "*"
+pydantic = "*"
 
 [dev-packages]
 

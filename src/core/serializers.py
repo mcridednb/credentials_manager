@@ -6,9 +6,7 @@ from loguru import logger
 from rest_framework import serializers
 
 from core.models import (
-    Credentials,
-    CredentialsProxy,
-    CredentialsStatistics,
+    Account,
     Proxy,
     Network,
     ParsingType,
@@ -29,14 +27,6 @@ class NetworkSerializer(serializers.ModelSerializer):
         fields = ["title", "dynamic_limits", "types"]
 
 
-class CredentialsSerializer(serializers.ModelSerializer):
-    network = NetworkSerializer()
-
-    class Meta:
-        model = Credentials
-        fields = ["id", "network", "login", "password"]
-
-
 class ProxySerializer(serializers.ModelSerializer):
     related_accounts_count = serializers.IntegerField(
         required=False, default=None
@@ -49,17 +39,17 @@ class ProxySerializer(serializers.ModelSerializer):
         ]
 
 
-class CredentialsProxySerializer(serializers.ModelSerializer):
-    credentials = CredentialsSerializer()
+class AccountSerializer(serializers.ModelSerializer):
+    network = NetworkSerializer()
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
 
-        if data.get("status") == CredentialsProxy.Status.WAITING:
+        if data.get("status") == Account.Status.WAITING:
             if not data.get("waiting_delta"):
                 data["waiting_delta"] = 60 * 60  # 1 hour
 
-        if data.get("status") == CredentialsProxy.Status.TEMPORARILY_BANNED:
+        if data.get("status") == Account.Status.TEMPORARILY_BANNED:
             if not data.get("waiting_delta"):
                 data["waiting_delta"] = 60 * 60 * 2  # 2 hours
 
@@ -68,29 +58,20 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
             data['cookies'] = json.loads(cookies)
 
         logger.info(
-            f"cred: {self.context['view'].kwargs['pk']}"
+            f"account: {self.context['view'].kwargs['pk']}"
             f" - RECEIVE FROM MICROSERVICE "
             f"WITH STATUS '{data.get('status')}'"
         )
 
         return data
 
-    # def update(self, instance, validated_data):
-    #     proxy = validated_data.get("proxy")
-    #     if proxy:
-    #         try:
-    #             validated_data['proxy'] = Proxy.objects.get(id=proxy)
-    #         except Proxy.DoesNotExist:
-    #             pass
-    #     return super().update(instance, validated_data)
-
     def make_limits(self, types):
         return {type_['title']: type_['limit'] for type_ in types}
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        if instance.credentials.network.dynamic_limits:
-            parsing_types = data['credentials']['network']['types']
+        if instance.network.dynamic_limits:
+            parsing_types = data['network']['types']
             for parsing_type in parsing_types:
                 dynamic_limit = (instance.counter // 6) or 1
                 if dynamic_limit <= parsing_type["limit"]:
@@ -98,27 +79,38 @@ class CredentialsProxySerializer(serializers.ModelSerializer):
                 parsing_type["limit"] = random.randint(
                     parsing_type["limit"]//2, parsing_type["limit"]
                 )
-            data['credentials']['network']['types'] = parsing_types
+            data['network']['types'] = parsing_types
         data['limits'] = self.make_limits(
-            data['credentials']['network']['types']
+            data['network']['types']
         )
-        data['network'] = data['credentials']['network']['title']
-        data['proxy'] = ProxySerializer(instance.proxy).data
+        data['network'] = data['network']['title']
+
+        if not instance.proxy and instance.network.need_proxy:
+            raise ValueError("Account not ready")
+
+        if instance.proxy:
+            data['proxy'] = ProxySerializer(instance.proxy).data
         return data
 
     class Meta:
-        model = CredentialsProxy
+        model = Account
         fields = [
             "id",
-            "status",
-            "status_description",
-            "credentials",
+            "network",
+            "login",
+            "password",
             "proxy",
-            "start_time_of_use",
             "cookies",
             "token",
+
+            "status",
+            "status_description",
         ]
-        read_only_fields = ["id", "credentials"]
+        read_only_fields = ["id", "proxy", "network", "login", "password"]
+        extra_kwargs = {
+            'status': {'write_only': True},
+            'status_description': {'write_only': True},
+        }
 
 
 class CredentialsStatisticsSerializer(serializers.ModelSerializer):

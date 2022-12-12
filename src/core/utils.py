@@ -1,4 +1,5 @@
 import logging
+import os
 
 import requests
 
@@ -21,3 +22,12 @@ def get_client_ip(request):
     else:
         ip = request.META.get('REMOTE_ADDR')
     return ip
+
+
+def send_telegram_notification(msg):
+    api_token = os.getenv("TELEGRAM_API_TOKEN")
+    chat_id = os.getenv("TELEGRAM_CHAT_ID")
+    requests.post(
+        f'https://api.telegram.org/bot{api_token}/sendMessage',
+        json={'chat_id': chat_id, 'text': msg}
+    )
