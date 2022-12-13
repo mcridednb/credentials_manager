@@ -1,5 +1,5 @@
 """
-ASGI config for credentials_manager project.
+ASGI config for accounts_manager project.
 
 It exposes the ASGI callable as a module-level variable named ``application``.
 

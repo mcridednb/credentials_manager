@@ -192,7 +192,8 @@ class Account(models.Model):
     enable = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.network}:{self.login}"
+        _id = self.login or self.token or self.id
+        return f"{self.network}:{_id}"
 
     class Meta:
         verbose_name = "аккаунт"

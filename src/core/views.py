@@ -7,68 +7,67 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 from core import amqp, tasks
-from core.filters import CredentialsFilter
-from core.models import (
-    CredentialsProxy, CredentialsStatistics, ParsingType, Proxy
-)
+from core.filters import AccountsFilter
+from core.models import Account, AccountStatistics, ParsingType, Proxy
 from core.serializers import (
-    CredentialsProxySerializer,
-    CredentialsStatisticsSerializer,
+    AccountSerializer,
+    AccountStatisticsSerializer,
     ParsingTypeSerializer,
     ProxySerializer,
 )
 from core.utils import get_client_ip
 
 
-class CredentialsProxyView(generics.RetrieveAPIView):
-    serializer_class = CredentialsProxySerializer
+class AccountView(generics.RetrieveAPIView):
+    serializer_class = AccountSerializer
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
         logger.info(
-            f"ip: {get_client_ip(request)} - RECEIVE REQUEST FOR {self.kwargs['network'].upper()}"
+            f"ip: {get_client_ip(request)} - "
+            f"RECEIVE REQUEST FOR {self.kwargs['network'].upper()}"
         )
 
-        credentials_proxy = amqp.consume(self.kwargs["network"])
+        account = amqp.consume(self.kwargs["network"])
 
-        if not credentials_proxy:
+        if not account:
             raise NotFound(
                 detail="Нет доступных аккаунтов, попробуйте повторить запрос позже",
                 code=404,
             )
 
-        if isinstance(credentials_proxy, list):
-            for credentials in credentials_proxy:
-                logger.info(f"cred: {credentials['id']} - RECEIVE FROM QUEUE")
+        if isinstance(account, list):
+            for row in account:
+                logger.info(f"account: {row['id']} - RECEIVE FROM QUEUE")
                 tasks.update_account_status.delay(
-                    credentials["id"], CredentialsProxy.Status.SENT
+                    row["id"], Account.Status.SENT
                 )
-            credentials_proxy = {"accounts": credentials_proxy}
+            account = {"accounts": account}
         else:
-            logger.info(f"cred: {credentials_proxy['id']} - RECEIVE FROM QUEUE")
+            logger.info(f"account: {account['id']} - RECEIVE FROM QUEUE")
             tasks.update_account_status.delay(
-                credentials_proxy["id"], CredentialsProxy.Status.SENT
+                account["id"], Account.Status.SENT
             )
 
-        return Response(credentials_proxy)
+        return Response(account)
 
 
-class CredentialsProxyUpdateView(generics.UpdateAPIView):
-    serializer_class = CredentialsProxySerializer
+class AccountUpdateView(generics.UpdateAPIView):
+    serializer_class = AccountSerializer
     permission_classes = [AllowAny]
 
-    queryset = CredentialsProxy.objects.all()
+    queryset = Account.objects.all()
     lookup_field = "pk"
 
 
-class CredentialsProxyListView(generics.ListAPIView):
-    queryset = CredentialsProxy.objects.all()
+class AccountListView(generics.ListAPIView):
+    queryset = Account.objects.all()
 
-    serializer_class = CredentialsProxySerializer
+    serializer_class = AccountSerializer
     permission_classes = [AllowAny]
 
     filter_backends = [filters.DjangoFilterBackend]
-    filterset_class = CredentialsFilter
+    filterset_class = AccountsFilter
 
 
 class ProxyListView(generics.ListAPIView):
@@ -92,8 +91,8 @@ class ProxyView(generics.RetrieveAPIView):
             enable=True, status=Proxy.Status.AVAILABLE
         ).annotate(
             related_accounts_count=Count(
-                "credentials_proxy", filter=Q(
-                    credentials_proxy__credentials__network__title=self.kwargs['network']
+                "accounts", filter=Q(
+                    accounts__network__title=self.kwargs['network']
                 )
             )
         ).order_by("related_accounts_count").first()
@@ -101,11 +100,11 @@ class ProxyView(generics.RetrieveAPIView):
         return Response(self.serializer_class(obj).data)
 
 
-class CredentialsStatisticsListView(generics.CreateAPIView):
-    serializer_class = CredentialsStatisticsSerializer
+class AccountStatisticsListView(generics.CreateAPIView):
+    serializer_class = AccountStatisticsSerializer
     permission_classes = [AllowAny]
 
-    queryset = CredentialsStatistics.objects.all()
+    queryset = AccountStatistics.objects.all()
 
 
 class LimitsView(generics.ListAPIView):

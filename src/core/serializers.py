@@ -7,6 +7,7 @@ from rest_framework import serializers
 
 from core.models import (
     Account,
+    AccountStatistics,
     Proxy,
     Network,
     ParsingType,
@@ -113,24 +114,24 @@ class AccountSerializer(serializers.ModelSerializer):
         }
 
 
-class CredentialsStatisticsSerializer(serializers.ModelSerializer):
+class AccountStatisticsSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
 
-        credentials_proxy = data['credentials_proxy']
+        account = data['account']
 
-        data["account_title"] = str(credentials_proxy.credentials)
-        data["start_time_of_use"] = credentials_proxy.start_time_of_use
+        data["account_title"] = str(account)
+        data["start_time_of_use"] = account.start_time_of_use
         data["end_time_of_use"] = timezone.now()
-        data["proxy"] = credentials_proxy.proxy
+        data["proxy"] = account.proxy
 
         return data
 
     class Meta:
-        model = CredentialsStatistics
+        model = AccountStatistics
         fields = [
             "id",
-            "credentials_proxy",
+            "account",
             "start_time_of_use",
             "end_time_of_use",
             "request_count",

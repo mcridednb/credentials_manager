@@ -1,5 +1,5 @@
 """
-WSGI config for credentials_manager project.
+WSGI config for accounts_manager project.
 
 It exposes the WSGI callable as a module-level variable named ``application``.
 

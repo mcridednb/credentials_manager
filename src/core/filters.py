@@ -1,13 +1,13 @@
 import django_filters
 
-from core.models import CredentialsProxy
+from core.models import Account
 
 
-class CredentialsFilter(django_filters.FilterSet):
+class AccountsFilter(django_filters.FilterSet):
     network = django_filters.CharFilter(
-        field_name="credentials__network__title"
+        field_name="network__title"
     )
 
     class Meta:
-        model = CredentialsProxy
+        model = Account
         fields = ["status", "network"]

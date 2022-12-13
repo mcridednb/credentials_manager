@@ -1,4 +1,4 @@
-"""credentials_manager URL Configuration
+"""accounts_manager URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.0/topics/http/urls/
@@ -22,18 +22,18 @@ from drf_yasg.views import get_schema_view
 from rest_framework import permissions
 
 from core.views import (
-    CredentialsProxyUpdateView,
-    CredentialsProxyView,
-    CredentialsStatisticsListView,
+    AccountUpdateView,
+    AccountView,
+    AccountStatisticsListView,
     LimitsView,
-    CredentialsProxyListView,
+    AccountListView,
     ProxyListView,
     ProxyView,
 )
 
 schema_view = get_schema_view(
     openapi.Info(
-        title="Credentials Manager API",
+        title="Accounts Manager API",
         default_version='v1',
         description="Менеджер учетных записей",
     ),
@@ -44,12 +44,13 @@ schema_view = get_schema_view(
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('docs/', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
-    path('api/credentials/<int:pk>', CredentialsProxyUpdateView.as_view()),
-    path('api/credentials/<str:network>', CredentialsProxyView.as_view()),
-    path('api/credentials/', CredentialsProxyListView.as_view()),
+
+    path('api/accounts/<int:pk>', AccountUpdateView.as_view()),
+    path('api/accounts/<str:network>', AccountView.as_view()),
+    path('api/accounts/', AccountListView.as_view()),
     path('api/proxy/', ProxyListView.as_view()),
     path('api/proxy/<str:network>', ProxyView.as_view()),
-    path('api/statistics/', CredentialsStatisticsListView.as_view()),
+    path('api/statistics/', AccountStatisticsListView.as_view()),
     path('api/limits/<str:network>', LimitsView.as_view()),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]

@@ -179,7 +179,6 @@ class AccountAdmin(admin.ModelAdmin):
         "status",
         "status_updated",
         "waiting_delta",
-        "start_time_of_use",
         "enable",
     )
 
@@ -191,7 +190,6 @@ class AccountAdmin(admin.ModelAdmin):
         "status_description",
         "status_updated",
         "waiting_delta",
-        "start_time_of_use",
         "cookies",
     ]
 
@@ -343,13 +341,13 @@ class AccountAdmin(admin.ModelAdmin):
 @admin.register(AccountStatistics)
 class AccountStatisticsAdmin(ReadOnlyMixin, admin.ModelAdmin):
     list_display = (
-        "account__id",
+        "account_id",
         "start_time_of_use",
         "end_time_of_use",
         "request_count",
         "limit",
         "result_status",
-        "proxy__id",
+        "proxy_id",
     )
 
 
