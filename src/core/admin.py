@@ -48,6 +48,7 @@ def create_proxy(proxy: pmodels.Proxy):
             "login": proxy.login,
             "password": proxy.password,
             "mobile": proxy.mobile,
+            "market": proxy.market,
             "status": Proxy.Status.AVAILABLE,
             "enable": True,
         }
@@ -71,6 +72,7 @@ class ProxyAdmin(admin.ModelAdmin):
         "status",
         "status_updated",
         "mobile",
+        "market",
         "enable",
     )
     list_editable = (
@@ -79,7 +81,7 @@ class ProxyAdmin(admin.ModelAdmin):
     )
 
     search_fields = ["ip"]
-    list_filter = ["status"]
+    list_filter = ["status", "market", "rents__expiration_date"]
 
     actions = ["export_as_csv"]
 
@@ -132,6 +134,7 @@ class ProxyAdmin(admin.ModelAdmin):
             "port",
             "type",
             "mobile",
+            "market",
             "expiration_date",
             "price",
         ])
@@ -150,6 +153,7 @@ class ProxyAdmin(admin.ModelAdmin):
                 obj.port,
                 obj.type,
                 str(obj.mobile).lower(),
+                obj.market,
                 date,
                 price,
             ])
@@ -267,6 +271,7 @@ class AccountAdmin(admin.ModelAdmin):
                     "password": account.password,
                     "proxy": proxy,
                     "price": account.price,
+                    "market": account.market,
                     "status": Account.Status.AVAILABLE,
                     "status_description": "Updated from file",
                     "enable": True,
@@ -287,6 +292,7 @@ class AccountAdmin(admin.ModelAdmin):
             "login",
             "password",
             "price",
+            "market",
             "token",
             "cookies",
             "proxy_login",
@@ -295,6 +301,7 @@ class AccountAdmin(admin.ModelAdmin):
             "proxy_port",
             "proxy_type",
             "proxy_mobile",
+            "proxy_market",
             "proxy_expiration_date",
             "proxy_price",
         ])
@@ -314,6 +321,7 @@ class AccountAdmin(admin.ModelAdmin):
                     obj.proxy.port,
                     obj.proxy.type,
                     obj.proxy.mobile,
+                    obj.proxy.market,
                     date,
                     price,
                 ]
@@ -323,6 +331,7 @@ class AccountAdmin(admin.ModelAdmin):
                 obj.login,
                 obj.password,
                 obj.price,
+                obj.market,
                 obj.token,
                 json.dumps(obj.cookies),
                 *proxy_part,

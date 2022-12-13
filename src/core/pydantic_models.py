@@ -47,6 +47,7 @@ class Proxy(BaseModel):
     port: str = Field(alias="proxy_port")
     type: Type = Field(alias="proxy_type")
     mobile: bool = Field(alias="proxy_mobile")
+    market: bool = Field(alias="proxy_market")
     expiration_date: date = Field(alias="proxy_expiration_date")
     price: int = Field(alias="proxy_price")
 
@@ -82,6 +83,7 @@ class Account(BaseModel):
     login: Optional[str]
     password: Optional[str]
     price: str
+    market: Optional[str]
     token: Optional[str]
     cookies: Optional[list]
     proxy: Optional[Proxy]

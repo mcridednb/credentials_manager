@@ -44,6 +44,8 @@ class Proxy(models.Model):
 
     mobile = models.BooleanField(default=False)
 
+    market = models.CharField(max_length=255, default="unknown")
+
     status = models.CharField(
         max_length=255, choices=Status.choices, default=Status.AVAILABLE
     )
@@ -170,6 +172,7 @@ class Account(models.Model):
     )
 
     price = models.IntegerField(null=True, blank=True)
+    market = models.CharField(max_length=255, default="unknown")
 
     status = models.CharField(
         max_length=255, choices=Status.choices, default=Status.AVAILABLE
