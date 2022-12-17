@@ -155,6 +155,10 @@ CELERY_BROKER_URL = AMQP_URL
 CELERY_TIMEZONE = TIME_ZONE
 
 CELERYBEAT_SCHEDULE = {
+    "set_proxy_accounts": {
+        "task": "set_proxy_accounts",
+        "schedule": 60 * 5,
+    },
     "update_accounts_statuses": {
         "task": "update_accounts_statuses",
         "schedule": 60 * 5,

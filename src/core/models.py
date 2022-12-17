@@ -2,6 +2,7 @@ from datetime import datetime, timedelta
 import logging
 
 from django.db import models
+from django.db.models import Count, Q
 
 from core.utils import check_proxy, send_telegram_notification
 
@@ -91,6 +92,19 @@ class Proxy(models.Model):
         finally:
             self.save()
 
+    @classmethod
+    def get_first_for(cls, network: str):
+        return cls.objects.filter(
+            enable=True, status=Proxy.Status.AVAILABLE
+        ).annotate(
+            related_accounts_count=Count(
+                "accounts", filter=Q(
+                    accounts__network__title=network,
+                    accounts__enable=True,
+                )
+            )
+        ).order_by("related_accounts_count").first()
+
     class Meta:
         verbose_name = "прокси"
         verbose_name_plural = "прокси"
@@ -103,7 +117,7 @@ class Proxy(models.Model):
 
 class ProxyRent(models.Model):
     proxy = models.ForeignKey(
-        Proxy, related_name="rents", on_delete=models.CASCADE
+        Proxy, related_name="rents", on_delete=models.PROTECT
     )
     expiration_date = models.DateField(null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
@@ -140,9 +154,9 @@ class ProxyRent(models.Model):
 
 
 class ProxyCounter(models.Model):
-    network = models.ForeignKey(Network, on_delete=models.CASCADE)
+    network = models.ForeignKey(Network, on_delete=models.PROTECT)
     proxy = models.ForeignKey(
-        Proxy, related_name="counters", on_delete=models.CASCADE
+        Proxy, related_name="counters", on_delete=models.PROTECT
     )
     counter = models.IntegerField(default=0)
 
@@ -169,14 +183,14 @@ class Account(models.Model):
         BANNED = "banned"
         WAITING = 'waiting'
 
-    network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
+    network = models.ForeignKey(Network, on_delete=models.PROTECT, null=True)
 
     login = models.CharField(max_length=255, null=True)
     password = models.CharField(max_length=255, null=True)
 
     proxy = models.ForeignKey(
         Proxy,
-        on_delete=models.DO_NOTHING,
+        on_delete=models.SET_NULL,
         related_name="accounts",
         null=True,
         blank=True,
@@ -240,7 +254,7 @@ class AccountStatistics(models.Model):
 
     proxy = models.ForeignKey(
         Proxy,
-        on_delete=models.SET_NULL,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
         related_name="statistics"

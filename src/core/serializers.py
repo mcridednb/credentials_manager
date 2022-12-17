@@ -56,7 +56,13 @@ class AccountSerializer(serializers.ModelSerializer):
 
         cookies = data.get("cookies")
         if cookies is not None and isinstance(cookies, str):
-            data['cookies'] = json.loads(cookies)
+            data["cookies"] = json.loads(cookies)
+
+        data["enable"] = data.get("status") in [
+            Account.Status.AVAILABLE,
+            Account.Status.WAITING,
+            Account.Status.TEMPORARILY_BANNED,
+        ]
 
         logger.info(
             f"account: {self.context['view'].kwargs['pk']}"
@@ -68,7 +74,7 @@ class AccountSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def make_limits(types):
-        return {type_['title']: type_['limit'] for type_ in types}
+        return {type_["title"]: type_["limit"] for type_ in types}
 
     @staticmethod
     def calculate_limits(parsing_types, counter):
@@ -87,18 +93,18 @@ class AccountSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
 
         if instance.network.dynamic_limits:
-            data['network']['types'] = self.calculate_limits(
-                data['network']['types'], instance.counter
+            data["network"]["types"] = self.calculate_limits(
+                data["network"]["types"], instance.counter
             )
 
-        data['limits'] = self.make_limits(data['network']['types'])
-        data['network'] = data['network']['title']
+        data["limits"] = self.make_limits(data["network"]["types"])
+        data["network"] = data["network"]["title"]
 
         if not instance.proxy and instance.network.need_proxy:
             raise ValueError("Account not ready")
 
         if instance.proxy:
-            data['proxy'] = ProxySerializer(instance.proxy).data
+            data["proxy"] = ProxySerializer(instance.proxy).data
         return data
 
     class Meta:
@@ -111,14 +117,16 @@ class AccountSerializer(serializers.ModelSerializer):
             "proxy",
             "cookies",
             "token",
+            "enable",
 
             "status",
             "status_description",
         ]
         read_only_fields = ["id", "proxy", "network", "login", "password"]
         extra_kwargs = {
-            'status': {'write_only': True},
-            'status_description': {'write_only': True},
+            "status": {"write_only": True},
+            "status_description": {"write_only": True},
+            "enable": {"write_only": True},
         }
 
 
@@ -126,7 +134,7 @@ class AccountStatisticsSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
 
-        account = data['account']
+        account = data["account"]
 
         data["account_title"] = str(account)
         data["start_time_of_use"] = account.start_time_of_use

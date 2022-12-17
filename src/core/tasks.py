@@ -10,9 +10,7 @@ from core.serializers import AccountSerializer
 
 @app.task
 def update_account_status(account_id, status):
-    account = Account.objects.select_related(
-        "network"
-    ).get(id=account_id)
+    account = Account.objects.select_related("network").get(id=account_id)
     account.status = status
     account.time_of_sent = timezone.now()
     account.counter += 1
@@ -91,8 +89,8 @@ def update_proxy_statuses(**kwargs):
 @app.task(name="update_accounts_statuses")
 def update_accounts_statuses(**kwargs):
     accounts = Account.objects.filter(
-        Q(status=Account.Status.WAITING) |
-        Q(status=Account.Status.TEMPORARILY_BANNED)
+        enable=True,
+        status__in=[Account.Status.WAITING, Account.Status.TEMPORARILY_BANNED]
     )
     for account in accounts:
         if (
@@ -107,4 +105,13 @@ def update_accounts_statuses(**kwargs):
 
 @app.task(name="set_proxy_accounts")
 def set_proxy_accounts(**kwargs):
-    ...
+    accounts = Account.objects.filter(
+        enable=True, network__need_proxy=True
+    ).filter(
+        Q(proxy__isnull=True) |
+        Q(proxy__status=Proxy.Status.NOT_AVAILABLE) |
+        Q(proxy__enable=False)
+    )
+    for account in accounts:
+        accounts.proxy = Proxy.get_first_for(account.network.title)
+        account.save()

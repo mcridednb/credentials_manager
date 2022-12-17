@@ -102,7 +102,8 @@ class ProxyAdmin(admin.ModelAdmin):
             )
 
         reader = csv.DictReader(
-            io.StringIO(request.FILES["csv_file"].read().decode("utf-8"))
+            io.StringIO(request.FILES["csv_file"].read().decode("utf-8")),
+            delimiter=';'
         )
 
         for proxy in reader:
@@ -125,7 +126,7 @@ class ProxyAdmin(admin.ModelAdmin):
     def export_as_csv(self, request, queryset):
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = f"attachment; filename=proxy_{queryset.count()}.csv"
-        writer = csv.writer(response)
+        writer = csv.writer(response, delimiter=';')
 
         writer.writerow([
             "login",
@@ -214,6 +215,7 @@ class AccountAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         return [
             path("load-to-queue/", self.load_to_queue),
+            path("update-proxy/", self.update_proxy),
             path("import-csv/", self.import_csv),
             *urls,
         ]
@@ -227,6 +229,15 @@ class AccountAdmin(admin.ModelAdmin):
 
         return redirect("..")
 
+    def update_proxy(self, request):
+        tasks.set_proxy_accounts.delay()
+
+        self.message_user(
+            request, "Задача на обновление прокси была поставлена"
+        )
+
+        return redirect("..")
+
     def import_csv(self, request):
         if request.method != "POST":
             return render(
@@ -234,7 +245,8 @@ class AccountAdmin(admin.ModelAdmin):
             )
 
         reader = csv.DictReader(
-            io.StringIO(request.FILES["csv_file"].read().decode("utf-8"))
+            io.StringIO(request.FILES["csv_file"].read().decode("utf-8")),
+            delimiter=';'
         )
 
         for account in reader:
@@ -285,7 +297,7 @@ class AccountAdmin(admin.ModelAdmin):
     def export_as_csv(self, request, queryset):
         response = HttpResponse(content_type="text/csv")
         response["Content-Disposition"] = f"attachment; filename=accounts_{queryset.count()}.csv"
-        writer = csv.writer(response)
+        writer = csv.writer(response, delimiter=';')
 
         writer.writerow([
             "network",

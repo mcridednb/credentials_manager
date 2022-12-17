@@ -87,16 +87,7 @@ class ProxyView(generics.RetrieveAPIView):
     permission_classes = [AllowAny]
 
     def retrieve(self, request, *args, **kwargs):
-        obj = Proxy.objects.filter(
-            enable=True, status=Proxy.Status.AVAILABLE
-        ).annotate(
-            related_accounts_count=Count(
-                "accounts", filter=Q(
-                    accounts__network__title=self.kwargs['network']
-                )
-            )
-        ).order_by("related_accounts_count").first()
-
+        obj = Proxy.get_first_for(self.kwargs["network"])
         return Response(self.serializer_class(obj).data)
 
 
