@@ -288,12 +288,14 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
             'cookies',
         ])
         for obj in queryset:
-            last_rent = obj.rents.last()
             date = None
             price = None
-            if last_rent:
-                date = last_rent.expiration_date.strftime("%d.%m.%Y")
-                price = last_rent.price
+            proxy = obj.proxy
+            if proxy:
+                last_rent = proxy.rents.last()
+                if last_rent:
+                    date = last_rent.expiration_date.strftime("%d.%m.%Y")
+                    price = last_rent.price
 
             writer.writerow([
                 obj.credentials.network.title,
