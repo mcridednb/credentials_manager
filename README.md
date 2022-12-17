@@ -1,1 +1,1 @@
-# credentials_manager
+# account_manager

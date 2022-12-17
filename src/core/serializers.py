@@ -66,24 +66,32 @@ class AccountSerializer(serializers.ModelSerializer):
 
         return data
 
-    def make_limits(self, types):
+    @staticmethod
+    def make_limits(types):
         return {type_['title']: type_['limit'] for type_ in types}
+
+    @staticmethod
+    def calculate_limits(parsing_types, counter):
+        for parsing_type in parsing_types:
+            dynamic_limit = (counter // 6) or 1
+
+            if dynamic_limit <= parsing_type["limit"]:
+                parsing_type["limit"] = dynamic_limit
+
+            parsing_type["limit"] = random.randint(
+                parsing_type["limit"] // 2, parsing_type["limit"]
+            )
+        return parsing_types
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+
         if instance.network.dynamic_limits:
-            parsing_types = data['network']['types']
-            for parsing_type in parsing_types:
-                dynamic_limit = (instance.counter // 6) or 1
-                if dynamic_limit <= parsing_type["limit"]:
-                    parsing_type["limit"] = dynamic_limit
-                parsing_type["limit"] = random.randint(
-                    parsing_type["limit"]//2, parsing_type["limit"]
-                )
-            data['network']['types'] = parsing_types
-        data['limits'] = self.make_limits(
-            data['network']['types']
-        )
+            data['network']['types'] = self.calculate_limits(
+                data['network']['types'], instance.counter
+            )
+
+        data['limits'] = self.make_limits(data['network']['types'])
         data['network'] = data['network']['title']
 
         if not instance.proxy and instance.network.need_proxy:

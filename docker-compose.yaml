@@ -2,7 +2,7 @@ version: '3'
 
 services:
   web:
-    container_name: cm_web
+    container_name: am_web
     build:
       context: .
     command: python -m gunicorn --workers=4 --env DJANGO_SETTINGS_MODULE=conf.settings conf.wsgi:application --bind 0.0.0.0:8000
@@ -11,21 +11,21 @@ services:
     environment:
       SERVICE: "web"
     ports:
-      - 8000:8000
+      - ${WEB_PORT}:8000
     volumes:
       - ./src:/app
     depends_on:
       - db
       - amqp
     networks:
-      - cm_network
+      - am_network
     restart: always
 
   celery:
-    container_name: cm_celery
+    container_name: am_celery
     build:
       context: .
-    command: python -m celery -A conf.celery worker -l INFO --beat --uid credentials_manager -c 4 -s /tmp/celerybeat-schedule.db
+    command: python -m celery -A conf.celery worker -l INFO --beat --uid account_manager -c 4 -s /tmp/celerybeat-schedule.db
     env_file:
       - .env
     environment:
@@ -36,37 +36,37 @@ services:
       - db
       - amqp
     networks:
-      - cm_network
+      - am_network
     restart: always
 
   db:
-    container_name: cm_db
+    container_name: am_db
     image: postgres:latest
     env_file:
       - .env
     ports:
       - ${POSTGRES_PORT}:5432
     volumes:
-      - '../db/credentials_manager:/var/lib/postgresql/data'
+      - '../db/account_manager:/var/lib/postgresql/data'
     networks:
-      - cm_network
+      - am_network
     restart: always
 
   amqp:
     image: rabbitmq:3.10.6-management-alpine
-    container_name: cm_amqp
+    container_name: am_amqp
     env_file:
       - .env
     ports:
       - 5672:5672
       - 15672:15672
     networks:
-      - cm_network
+      - am_network
     restart: always
 
   filebeat:
     image: elastic/filebeat:7.16.2
-    container_name: cm_filebeat
+    container_name: am_filebeat
     volumes:
       - ./configs/filebeat.yml:/usr/share/filebeat/filebeat.yml:ro
       - ./src/logs:/logs:ro
@@ -77,8 +77,8 @@ services:
     restart: always
 
 networks:
-  cm_network:
-    name: cm_network
+  am_network:
+    name: am_network
     driver: bridge
 
   elk_network:

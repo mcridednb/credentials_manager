@@ -44,7 +44,9 @@ class Proxy(models.Model):
 
     mobile = models.BooleanField(default=False)
 
-    market = models.CharField(max_length=255, default="unknown")
+    market = models.CharField(
+        max_length=255, default="unknown", null=True, blank=True
+    )
 
     status = models.CharField(
         max_length=255, choices=Status.choices, default=Status.AVAILABLE
@@ -106,10 +108,18 @@ class ProxyRent(models.Model):
     expiration_date = models.DateField(null=True, blank=True)
     price = models.IntegerField(null=True, blank=True)
 
+    five_day_notification = models.BooleanField(default=False)
     tomorrow_notification = models.BooleanField(default=False)
     today_notification = models.BooleanField(default=False)
 
     def check_expiration(self):
+        if self.expiration_date == (datetime.today() + timedelta(days=5)).date():
+            if not self.five_day_notification:
+                send_telegram_notification(
+                    f"Через 5 дней заканчиваются прокси {self.proxy.ip}"
+                )
+                self.five_day_notification = True
+
         if self.expiration_date == (datetime.today() + timedelta(days=1)).date():
             if not self.tomorrow_notification:
                 send_telegram_notification(
@@ -156,6 +166,7 @@ class Account(models.Model):
         PROXY_ERROR = 'proxy_error'
         LOGIN_FAILED = 'login_failed'
         TEMPORARILY_BANNED = 'temporarily_banned'
+        BANNED = "banned"
         WAITING = 'waiting'
 
     network = models.ForeignKey(Network, on_delete=models.CASCADE, null=True)
@@ -172,7 +183,9 @@ class Account(models.Model):
     )
 
     price = models.IntegerField(null=True, blank=True)
-    market = models.CharField(max_length=255, default="unknown")
+    market = models.CharField(
+        max_length=255, default="unknown", null=True, blank=True
+    )
 
     status = models.CharField(
         max_length=255, choices=Status.choices, default=Status.AVAILABLE
@@ -192,7 +205,7 @@ class Account(models.Model):
     enable = models.BooleanField(default=True)
 
     def __str__(self):
-        _id = self.login or self.token or self.id
+        _id = self.login or self.token[:10] or self.id
         return f"{self.network}:{_id}"
 
     class Meta:

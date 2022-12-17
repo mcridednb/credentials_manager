@@ -175,6 +175,8 @@ class AccountAdmin(admin.ModelAdmin):
     change_list_template = "entities/accounts_changelist.html"
 
     list_display = (
+        "__str__",
+        "market",
         "proxy",
         "status",
         "status_updated",
@@ -194,7 +196,7 @@ class AccountAdmin(admin.ModelAdmin):
     ]
 
     search_fields = ["login", "proxy__ip", "token"]
-    list_filter = ["network", "status"]
+    list_filter = ["network", "status", "market"]
 
     inlines = [AccountStatisticsInline]
 

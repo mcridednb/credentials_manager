@@ -82,7 +82,7 @@ class Account(BaseModel):
     network: str
     login: Optional[str]
     password: Optional[str]
-    price: str
+    price: Optional[str]
     market: Optional[str]
     token: Optional[str]
     cookies: Optional[list]

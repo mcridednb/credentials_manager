@@ -7,9 +7,9 @@ ENV PYTHONUNBUFFERED 1
 
 WORKDIR /app
 
-RUN groupadd credentials_manager
-RUN useradd -g credentials_manager credentials_manager
-RUN chown -R credentials_manager:credentials_manager /app
+RUN groupadd account_manager
+RUN useradd -g account_manager account_manager
+RUN chown -R account_manager:account_manager /app
 
 FROM base AS builder
 
