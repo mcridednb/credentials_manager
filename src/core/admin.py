@@ -347,8 +347,8 @@ class CredentialsProxyAdmin(admin.ModelAdmin):
                             "enable": True,
                             "status": Proxy.Status.AVAILABLE,
                             "type": credentials_proxy.get("proxy_type", Proxy.Type.HTTP),
-                            "expiration_date": get_date(credentials_proxy.get("proxy_expiration_date")),
-                            "price": credentials_proxy.get("proxy_price"),
+                            # "expiration_date": get_date(credentials_proxy.get("proxy_expiration_date")),
+                            # "price": credentials_proxy.get("proxy_price"),
                         }
                     )
                 except IntegrityError:
