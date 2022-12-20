@@ -42,6 +42,8 @@ class ProxySerializer(serializers.ModelSerializer):
 
 class AccountSerializer(serializers.ModelSerializer):
     network = NetworkSerializer()
+    request_count = serializers.DictField(allow_null=True)
+    limits = serializers.DictField(allow_null=True)
 
     def to_internal_value(self, data):
         data = super().to_internal_value(data)
@@ -62,7 +64,19 @@ class AccountSerializer(serializers.ModelSerializer):
             Account.Status.AVAILABLE,
             Account.Status.WAITING,
             Account.Status.TEMPORARILY_BANNED,
+            Account.Status.PROXY_ERROR,
         ]
+
+        # save statistics
+        serializer = AccountStatisticsSerializer(data={
+            "account": self.context["view"].kwargs["pk"],
+            "request_count": data["request_count"],
+            "limits": data["limits"],
+            "result_status": data["status"],
+            "status_description": data["status_description"],
+        })
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
 
         logger.info(
             f"account: {self.context['view'].kwargs['pk']}"
@@ -118,7 +132,8 @@ class AccountSerializer(serializers.ModelSerializer):
             "cookies",
             "token",
             "enable",
-
+            "request_count",
+            "limits",
             "status",
             "status_description",
         ]
@@ -127,6 +142,8 @@ class AccountSerializer(serializers.ModelSerializer):
             "status": {"write_only": True},
             "status_description": {"write_only": True},
             "enable": {"write_only": True},
+            "request_count": {"write_only": True},
+            "limits": {"write_only": True},
         }
 
 
@@ -136,8 +153,7 @@ class AccountStatisticsSerializer(serializers.ModelSerializer):
 
         account = data["account"]
 
-        data["account_title"] = str(account)
-        data["start_time_of_use"] = account.start_time_of_use
+        data["time_of_sent"] = account.time_of_sent
         data["end_time_of_use"] = timezone.now()
         data["proxy"] = account.proxy
 
@@ -148,16 +164,16 @@ class AccountStatisticsSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "account",
-            "start_time_of_use",
+            "time_of_sent",
             "end_time_of_use",
             "request_count",
-            "limit",
+            "limits",
             "result_status",
             "status_description",
             "proxy",
         ]
         read_only_fields = ["id"]
         extra_kwargs = {
-            "start_time_of_use": {"required": False, "allow_null": True},
+            "time_of_sent": {"required": False, "allow_null": True},
             "end_time_of_use": {"required": False, "allow_null": True}
         }

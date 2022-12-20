@@ -11,7 +11,7 @@ _Model = TypeVar('_Model', bound='BaseModel')
 
 class BaseModel(PydanticBaseModel):
     @classmethod
-    def parse_obj(cls: Type[_Model], obj: dict) -> Optional[_Model]:
+    def parse_obj(cls: Type[_Model], obj: dict, only_alias=True) -> Optional[_Model]:
         obj = obj.copy()
         if not isinstance(obj, dict):
             return super().parse_obj(obj)
@@ -23,8 +23,12 @@ class BaseModel(PydanticBaseModel):
             if getattr(field.type_, 'parse_obj', None):
                 child_values[member_name] = field.type_.parse_obj(obj)
             else:
-                alias = field.alias or field.name
-                has_data = has_data or obj.get(alias) is not None
+                has_data = (
+                    has_data
+                    or obj.get(field.alias) is not None
+                )
+                if not only_alias:
+                    has_data = has_data or obj.get(field.name) is not None
 
         if not has_data and not child_values:
             return None
@@ -47,13 +51,18 @@ class Proxy(BaseModel):
     port: str = Field(alias="proxy_port")
     type: Type = Field(alias="proxy_type")
     mobile: bool = Field(alias="proxy_mobile")
-    market: bool = Field(alias="proxy_market")
+    market: str = Field(alias="proxy_market")
     expiration_date: date = Field(alias="proxy_expiration_date")
     price: int = Field(alias="proxy_price")
 
     @validator("expiration_date", pre=True)
     def parse_expiration_date(cls, value):
         return datetime.strptime(value, "%d.%m.%Y").date()
+
+    @validator("price", pre=True)
+    def parse_price(cls, value):
+        if value:
+            return value
 
     class Config:
         use_enum_values = True
@@ -82,7 +91,7 @@ class Account(BaseModel):
     network: str
     login: Optional[str]
     password: Optional[str]
-    price: Optional[str]
+    price: Optional[int]
     market: Optional[str]
     token: Optional[str]
     cookies: Optional[list]
@@ -90,7 +99,31 @@ class Account(BaseModel):
 
     @validator("cookies", pre=True)
     def parse_cookies(cls, value):
-        return [Cookie.parse_obj(cookie).dict() for cookie in json.loads(value)]
+        value = json.loads(value)
+        if value:
+            return [
+                Cookie.parse_obj(cookie).dict() for cookie in value
+            ]
+
+    @validator("price", pre=True)
+    def parse_price(cls, value):
+        if value:
+            return value
+
+    @validator("login", pre=True)
+    def parse_login(cls, value):
+        if value:
+            return value
+
+    @validator("token", pre=True)
+    def parse_token(cls, value):
+        if value:
+            return value
+
+    @validator("proxy", pre=True)
+    def parse_proxy(cls, value):
+        if value:
+            return value
 
     @root_validator
     @classmethod

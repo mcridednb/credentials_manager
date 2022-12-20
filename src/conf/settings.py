@@ -9,7 +9,6 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
 import os
 from pathlib import Path
 import sys
@@ -166,6 +165,13 @@ CELERYBEAT_SCHEDULE = {
     "update_proxy_statuses": {
         "task": "update_proxy_statuses",
         "schedule": 60 * 60 * 3,
+    },
+    "update_proxy_statuses_all": {
+        "task": "update_proxy_statuses",
+        "schedule": 60 * 60 * 24,
+        "kwargs": {
+            "all": True,
+        }
     },
     "load_accounts_to_queue": {
         "task": "load_accounts_to_queue",

@@ -24,7 +24,6 @@ from rest_framework import permissions
 from core.views import (
     AccountUpdateView,
     AccountView,
-    AccountStatisticsListView,
     LimitsView,
     AccountListView,
     ProxyListView,
@@ -50,7 +49,6 @@ urlpatterns = [
     path('api/accounts/', AccountListView.as_view()),
     path('api/proxy/', ProxyListView.as_view()),
     path('api/proxy/<str:network>', ProxyView.as_view()),
-    path('api/statistics/', AccountStatisticsListView.as_view()),
     path('api/limits/<str:network>', LimitsView.as_view()),
     re_path(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]

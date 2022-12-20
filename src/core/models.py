@@ -81,6 +81,7 @@ class Proxy(models.Model):
 
             logger.warning(f"Something went wrong with ip: {self.ip}: {e}")
         else:
+            self.enable = True
             if self.ip == result_ip:
                 self.status = self.Status.AVAILABLE
             else:
@@ -172,21 +173,21 @@ class ProxyCounter(models.Model):
 
 class Account(models.Model):
     class Status(models.TextChoices):
-        AVAILABLE = 'available'
-        IN_QUEUE = 'in_queue'
-        SENT = 'sent'
-        INVALID = 'invalid'
-        NOT_AVAILABLE = 'not_available'
-        PROXY_ERROR = 'proxy_error'
-        LOGIN_FAILED = 'login_failed'
-        TEMPORARILY_BANNED = 'temporarily_banned'
+        AVAILABLE = "available"
+        IN_QUEUE = "in_queue"
+        SENT = "sent"
+        INVALID = "invalid"
+        NOT_AVAILABLE = "not_available"
+        PROXY_ERROR = "proxy_error"
+        LOGIN_FAILED = "login_failed"
+        TEMPORARILY_BANNED = "temporarily_banned"
         BANNED = "banned"
-        WAITING = 'waiting'
+        WAITING = "waiting"
 
     network = models.ForeignKey(Network, on_delete=models.PROTECT, null=True)
 
-    login = models.CharField(max_length=255, null=True)
-    password = models.CharField(max_length=255, null=True)
+    login = models.CharField(max_length=255, null=True, blank=True)
+    password = models.CharField(max_length=255, null=True, blank=True)
 
     proxy = models.ForeignKey(
         Proxy,
@@ -243,11 +244,11 @@ class AccountStatistics(models.Model):
     account = models.ForeignKey(
         Account, on_delete=models.CASCADE, related_name="statistics"
     )
-    start_time_of_use = models.DateTimeField()
+    time_of_sent = models.DateTimeField()
     end_time_of_use = models.DateTimeField()
 
     request_count = models.JSONField(null=True)
-    limit = models.JSONField(null=True)
+    limits = models.JSONField(null=True)
 
     result_status = models.CharField(max_length=255, choices=Status.choices)
     status_description = models.TextField(null=True, blank=True)
@@ -259,6 +260,9 @@ class AccountStatistics(models.Model):
         blank=True,
         related_name="statistics"
     )
+
+    def __str__(self):
+        return str(self.id)
 
     class Meta:
         verbose_name = "статистика по аккаунтам"

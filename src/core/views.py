@@ -8,10 +8,9 @@ from rest_framework.response import Response
 
 from core import amqp, tasks
 from core.filters import AccountsFilter
-from core.models import Account, AccountStatistics, ParsingType, Proxy
+from core.models import Account, ParsingType, Proxy
 from core.serializers import (
     AccountSerializer,
-    AccountStatisticsSerializer,
     ParsingTypeSerializer,
     ProxySerializer,
 )
@@ -89,13 +88,6 @@ class ProxyView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         obj = Proxy.get_first_for(self.kwargs["network"])
         return Response(self.serializer_class(obj).data)
-
-
-class AccountStatisticsListView(generics.CreateAPIView):
-    serializer_class = AccountStatisticsSerializer
-    permission_classes = [AllowAny]
-
-    queryset = AccountStatistics.objects.all()
 
 
 class LimitsView(generics.ListAPIView):

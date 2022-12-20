@@ -14,14 +14,16 @@ def update_account_status(account_id, status):
     account.status = status
     account.time_of_sent = timezone.now()
     account.counter += 1
-    account.start_time_of_use = timezone.now()
     account.save()
-    proxy_counter, _ = ProxyCounter.objects.get_or_create(
-        network=account.network,
-        proxy=account.proxy,
-    )
-    proxy_counter.counter += 1
-    proxy_counter.save()
+
+    if account.proxy:
+        proxy_counter, _ = ProxyCounter.objects.get_or_create(
+            network=account.network,
+            proxy=account.proxy,
+        )
+        proxy_counter.counter += 1
+        proxy_counter.save()
+
     logger.info(f"account: {account_id} - CHANGED STATUS TO '{status}'")
 
 
@@ -31,10 +33,25 @@ def load_accounts_to_queue(**kwargs):
         status=Account.Status.AVAILABLE,
         enable=True,
     ).exclude(
+        Q(network__need_proxy=True) &
+        Q(
+            Q(proxy__isnull=True) |
+            Q(proxy__status=Proxy.Status.NOT_AVAILABLE) |
+            Q(proxy__enable=False)
+        )
+    ).exclude(
         network__title="ok"
     ).select_related("network", "proxy",)
 
     for account in accounts:
+        if account.network.need_proxy:
+            if not account.proxy:
+                continue
+            if not account.proxy.enable:
+                continue
+            if account.proxy.status == Proxy.Status.NOT_AVAILABLE:
+                continue
+
         account.status = Account.Status.IN_QUEUE
         account.save()
         logger.info(f"account: {account.id} - CHANGED STATUS TO 'IN_QUEUE'")
@@ -113,5 +130,5 @@ def set_proxy_accounts(**kwargs):
         Q(proxy__enable=False)
     )
     for account in accounts:
-        accounts.proxy = Proxy.get_first_for(account.network.title)
+        account.proxy = Proxy.get_first_for(account.network.title)
         account.save()

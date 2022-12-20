@@ -4,6 +4,7 @@ import io
 import json
 
 from django.contrib import admin, messages
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import path
@@ -71,12 +72,10 @@ class ProxyAdmin(admin.ModelAdmin):
         "__str__",
         "status",
         "status_updated",
-        "mobile",
         "market",
         "enable",
     )
     list_editable = (
-        "mobile",
         "enable",
     )
 
@@ -108,7 +107,7 @@ class ProxyAdmin(admin.ModelAdmin):
 
         for proxy in reader:
             try:
-                proxy = pmodels.Proxy.parse_obj(proxy)
+                proxy = pmodels.Proxy.parse_obj(proxy, only_alias=False)
             except Exception as e:
                 self.message_user(
                     request,
@@ -274,16 +273,20 @@ class AccountAdmin(admin.ModelAdmin):
                 )
                 return redirect("..")
 
-            Account.objects.update_or_create(
+            Account.objects.filter(
+                Q(Q(login=account.login) & Q(token__isnull=True)) |
+                Q(Q(token=account.token) & Q(login__isnull=True)) |
+                Q(Q(login=account.login) & Q(token=account.token))
+            ).update_or_create(
                 network=network,
-                login=account.login,
-                token=account.token,
-                cookies=account.cookies,
                 defaults={
                     "password": account.password,
                     "proxy": proxy,
+                    "login": account.login,
+                    "token": account.token,
                     "price": account.price,
                     "market": account.market,
+                    "cookies": account.cookies,
                     "status": Account.Status.AVAILABLE,
                     "status_description": "Updated from file",
                     "enable": True,
@@ -356,10 +359,10 @@ class AccountAdmin(admin.ModelAdmin):
 class AccountStatisticsAdmin(ReadOnlyMixin, admin.ModelAdmin):
     list_display = (
         "account_id",
-        "start_time_of_use",
+        "time_of_sent",
         "end_time_of_use",
         "request_count",
-        "limit",
+        "limits",
         "result_status",
         "proxy_id",
     )
